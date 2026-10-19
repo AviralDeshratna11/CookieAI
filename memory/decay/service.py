@@ -1,6 +1,6 @@
 import math
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 
 from database import dynamics_tables as d
 from database import tables as t
@@ -38,7 +38,12 @@ class DynamicsService:
                     memory.status.value not in {"ACTIVE", "DORMANT", "ARCHIVED"}
                     or "pinned" in memory.tags
                 ):
-                    continue
+                    if not (
+                        memory.expires_at
+                        and memory.expires_at <= now
+                        and memory.status.value != "EXPIRED"
+                    ):
+                        continue
                 age = max(0, (now - memory.created_at).total_seconds()) / 86400
                 reinforcement = 1 + min(
                     1,
@@ -77,6 +82,28 @@ class DynamicsService:
                     self.memory.vector(revised.canonical_text),
                     "ARCHIVED" if status == "ARCHIVED" else "UPDATED",
                 )
+                from database import reflection_tables as findings
+                from memory.insights.lifecycle import seal
+
+                payload = connection.execute(
+                    select(findings.insights.c.payload).where(
+                        findings.insights.c.id == memory.memory_id
+                    )
+                ).scalar()
+                if payload and status in {"DORMANT", "ARCHIVED", "EXPIRED"}:
+                    finding_status = "EXPIRED" if status == "EXPIRED" else "DORMANT"
+                    if payload["status"] != finding_status:
+                        revised_payload = seal(
+                            {**payload, "status": finding_status},
+                            [repo.get(identity) for identity in memory.provenance_ids],
+                            payload,
+                        )
+                        connection.execute(
+                            update(findings.insights)
+                            .where(findings.insights.c.id == memory.memory_id)
+                            .values(payload=revised_payload)
+                        )
+                    self.memory._invalidate_descendants(repo, memory.memory_id)
                 changed.append(revised.memory_id)
             return changed
 

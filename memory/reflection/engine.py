@@ -149,6 +149,10 @@ class ReflectionEngine:
                     {(item.memory_id, item.revision) for item in evidence},
                 )
         results = self._run(ctx, max_features, reviews)
+        if self.memory.settings.structured_discovery_enabled:
+            from memory.reflection.structured import StructuredDiscovery
+
+            results.extend(StructuredDiscovery(self.memory).run(ctx))
         if self.memory.settings.general_discovery_enabled:
             from memory.reflection.discovery import DiscoveryEngine
 
@@ -373,6 +377,11 @@ class ReflectionEngine:
                     "retention_policy": "Retain for contextual retrieval; decay can make dormant; evidence deletion cascades",
                     "review_policy": "Re-evaluate on changed feature evidence and scheduled reflection",
                 }
+                from memory.insights.lifecycle import seal
+
+                payload = seal(
+                    payload, evidence, existing["payload"] if existing else None
+                )
                 if existing:
                     connection.execute(
                         update(r.insights)
@@ -431,14 +440,20 @@ class ReflectionEngine:
         with self.memory.engine.begin() as connection:
             repo = SQLMemoryRepository(connection, ctx)
             result = []
-            for row in connection.execute(
+            rows = connection.execute(
                 select(r.insights).where(r.insights.c.namespace_id == ctx.namespace_id)
-            ):
-                try:
-                    canonical = repo.get(row.id)
-                except NotFound:
+            ).all()
+            permitted = repo.get_many([row.id for row in rows], strict=False)
+            for row in rows:
+                canonical = permitted.get(row.id)
+                if canonical is None:
                     continue
                 if canonical.expires_at and canonical.expires_at <= utcnow():
+                    continue
+                if (
+                    canonical.status.value == "EXPIRED"
+                    or row.payload["status"] == "EXPIRED"
+                ):
                     continue
                 if include_candidates or row.payload["status"] in {
                     "ACTIVE",

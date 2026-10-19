@@ -1,5 +1,10 @@
 # Configured local demo
 
+Try the actual assistant loop with `.venv\Scripts\python.exe -m apps.cli.chat`. It uses the running API and persistent worker, prints a durable turn ID, and records explicit outcome feedback through the API. Run a second invocation for a new session, or pass the same `--session <UUID>` to continue one conversation. Full examples, new endpoints, test commands and boundaries are in [memory-loop-acceptance.md](memory-loop-acceptance.md).
+
+Before building a fresh checkout, run `.venv\Scripts\python.exe -m scripts.fetch_tokenizer` and set `MEMORY_CONTEXT_TOKENIZER_FILE='config/nemotron-tokenizer.json'` in private `.env.cloud`. The downloader verifies the pinned public artifact. Without this setting, context budgets are explicitly labeled conservative UTF-8 bounds. The hosted Docker startup remains `docker compose --env-file .env --env-file .env.supabase --env-file .env.cloud -f docker-compose.yml -f docker-compose.hosted.yml up -d api worker`. Apply pending hosted migrations with the backup/upgrade script before switching images.
+
+
 The API runs at http://127.0.0.1:8010 with interactive API documentation at http://127.0.0.1:8010/docs. PostgreSQL/pgvector is hosted in Supabase; Redis, the API and background worker run in Docker on this PC. Extraction and reflection use `nvidia/nemotron-3-ultra-550b-a55b` directly through NVIDIA's API. Embeddings use `nvidia/nemotron-3-embed-1b` directly through NVIDIA. Ollama is no longer required. See [current cloud connections](cloud-services.md).
 
 All 44 application tables were migrated and verified, preserving 125 memory records. API and worker now connect over TLS through the Supabase Session pooler. The local PostgreSQL volume remains a rollback snapshot; see [Supabase migration status](supabase-migration.md). Hosted URLs and credentials are in ignored `.env.supabase`, while `.env` retains local URLs for direct CLI/test administration.

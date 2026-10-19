@@ -4,7 +4,7 @@ import hashlib
 import unicodedata
 from uuid import UUID
 
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, select, update
 
 from database import tables as t
 from database.repositories.memory import SQLMemoryRepository
@@ -38,6 +38,9 @@ class MemoryService:
         from memory.retrieval.hybrid import LocalQueryRewriter
 
         self.query_cache = QueryVectorCache(settings.query_embedding_cache_seconds)
+        from memory.context.budget import TokenCounter
+
+        self.token_counter = TokenCounter(settings.context_tokenizer_file)
 
         if settings.query_rewriter_backend == "compatible":
             from models.providers import CompatibleQueryRewriter
@@ -219,6 +222,30 @@ class MemoryService:
                 )
                 child = Memory.model_validate(values)
                 repo.save(child, self.vector(child.canonical_text), "DISPUTED")
+                from database import reflection_tables
+                from memory.insights.lifecycle import seal
+
+                finding = repo.db.execute(
+                    select(reflection_tables.insights.c.payload).where(
+                        reflection_tables.insights.c.id == child_id
+                    )
+                ).scalar()
+                if finding:
+                    evidence = [repo.get(identity) for identity in child.provenance_ids]
+                    revised = seal(
+                        {
+                            **finding,
+                            "status": "INVALIDATED",
+                            "requires_revalidation": True,
+                        },
+                        evidence,
+                        finding,
+                    )
+                    repo.db.execute(
+                        update(reflection_tables.insights)
+                        .where(reflection_tables.insights.c.id == child_id)
+                        .values(payload=revised)
+                    )
                 pending.append(child_id)
 
     def _mutate(self, repo, proposal, kind, previous):
@@ -563,6 +590,7 @@ class MemoryService:
                 max(request.top_k, len(conflicts)),
                 policy.max_memory_tokens,
                 priority_conflicts=True,
+                counter=self.token_counter,
             )
             from uuid import uuid4
 
@@ -663,6 +691,12 @@ class MemoryService:
             from memory.entities.store import remove_orphans
 
             remove_orphans(db, ctx.namespace_id)
+            from database.operations_tables import jobs
+
+            db.execute(delete(jobs).where(jobs.c.namespace_id == ctx.namespace_id))
+            from database.cognitive_tables import turns
+
+            db.execute(delete(turns).where(turns.c.namespace_id == ctx.namespace_id))
             return {"namespace_id": str(ctx.namespace_id), "deleted": len(removed)}
 
     def provenance(self, ctx, memory_id):
@@ -678,11 +712,20 @@ class MemoryService:
             if not request.retain:
                 return []  # Opt-out means no message/session/model persistence.
             policy = self.policy(repo)
-            digest = hashlib.sha256(request.model_dump_json().encode()).hexdigest()
+            from memory.security.identifiers import opaque
+
+            digest = hashlib.sha256(
+                request.model_dump_json(exclude_unset=True).encode()
+            ).hexdigest()
+            legacy_digest = hashlib.sha256(
+                request.model_dump_json().encode()
+            ).hexdigest()
             receipt_filter = (
                 t.ingestions.c.namespace_id == ctx.namespace_id,
                 t.ingestions.c.agent_id == ctx.requesting_agent_id,
-                t.ingestions.c.idempotency_key == request.idempotency_key,
+                t.ingestions.c.idempotency_key.in_(
+                    [opaque(request.idempotency_key), request.idempotency_key]
+                ),
             )
             receipt = (
                 connection.execute(select(t.ingestions).where(*receipt_filter))
@@ -690,7 +733,7 @@ class MemoryService:
                 .first()
             )
             if receipt:
-                if receipt["request_hash"] != digest:
+                if receipt["request_hash"] not in {digest, legacy_digest}:
                     raise Conflict("idempotency key reused with different input")
                 result = []
                 for memory_id in receipt["memory_ids"]:
@@ -836,7 +879,7 @@ class MemoryService:
                 insert(t.ingestions).values(
                     namespace_id=ctx.namespace_id,
                     agent_id=ctx.requesting_agent_id,
-                    idempotency_key=request.idempotency_key,
+                    idempotency_key=opaque(request.idempotency_key),
                     request_hash=digest,
                     memory_ids=[str(memory.memory_id) for memory in memories],
                 )

@@ -1,5 +1,8 @@
 # Completion status and acceptance boundaries
 
+Latest execution update: the assistant recall/outcome/procedure loop passed a bounded real NVIDIA acceptance test against an isolated PostgreSQL schema. Dependency-scoped forgetting, finding revision, continuity, token budgets and worker recovery have new regression coverage. [Current implementation, evidence and residual requirements](memory-loop-acceptance.md) supersedes the older completion-pass details below. Full master-specification acceptance is still partial.
+
+
 The local Docker pipeline is operational; the entire master specification is not certified complete. The user selected local Docker on this PC as the deployment target. No public deployment or new GitHub push is authorized by the completion request.
 
 Subsequent updates moved PostgreSQL to Supabase and model calls directly to NVIDIA's free developer APIs: Nemotron 3 Ultra for extraction/reflection and Nemotron 3 Embed 1B for 2048-dimensional memory/entity vectors. API, worker and Redis still run locally. All 125 memory IDs survived the five-namespace atomic vector migration, and 104 regression tests pass. See [cloud services](cloud-services.md) for current connections; the earlier Nomic work below describes the preceding implementation stage.

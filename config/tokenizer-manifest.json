@@ -1,0 +1,7 @@
+{
+  "model": "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16",
+  "revision": "77df655d5e9f8362164ed14dd8b48f8bce657498",
+  "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16/resolve/77df655d5e9f8362164ed14dd8b48f8bce657498/tokenizer.json",
+  "sha256": "623c34567aebb18582765289fbe23d901c62704d6518d71866e0e58db892b5b7",
+  "bytes": 17077484
+}

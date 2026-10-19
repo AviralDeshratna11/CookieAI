@@ -55,7 +55,9 @@ class LocalQueryRewriter:
         return list(dict.fromkeys([query, cleaned or query]))[:4]
 
 
-def diverse_select(scored, top_k, budget, diversity=0.15, priority_conflicts=False):
+def diverse_select(
+    scored, top_k, budget, diversity=0.15, priority_conflicts=False, counter=None
+):
     selected = []
     consumed = 0
     remaining = list(scored)
@@ -84,7 +86,11 @@ def diverse_select(scored, top_k, budget, diversity=0.15, priority_conflicts=Fal
         best = max(remaining, key=adjusted)
         remaining.remove(best)
         # UTF-8 byte count is a conservative token upper bound, including non-ASCII.
-        cost = len(best[0].model_dump_json().encode("utf-8"))
+        cost = (
+            counter.count(best[0].model_dump(mode="json"))
+            if counter
+            else len(best[0].model_dump_json().encode("utf-8"))
+        )
         if consumed + cost <= budget:
             selected.append(best)
             consumed += cost

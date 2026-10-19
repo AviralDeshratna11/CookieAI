@@ -61,3 +61,35 @@ def test_repeated_evidence_required_and_failure_feedback_reduces_confidence(
     )
     assert revised.confidence < learned.confidence
     assert revised.failure_count == 1
+
+
+def test_different_successful_orders_are_not_an_observed_procedure(service, ctx):
+    episodes = EpisodeService(service)
+    ids = []
+    for order in [("inspect", "repair"), ("repair", "inspect"), ("inspect", "repair")]:
+        episode = episodes.record(
+            ctx,
+            EpisodeInput(
+                title="Ordered task",
+                trigger="incident",
+                goal="repair",
+                outcome="success",
+                context={
+                    "domain": "infra",
+                    "error_category": "disk",
+                    "goal_type": "repair",
+                },
+                attempts=[
+                    ToolAttempt(
+                        tool="shell", intent="repair", action=action, success=True
+                    )
+                    for action in order
+                ],
+            ),
+        )
+        ids.append(episode.episode_id)
+    experience = ExperienceService(service).compile(ctx, ids)
+    with pytest.raises(ValueError, match="matching observed"):
+        ProcedureService(service).compile(
+            ctx, ProcedureCompile(experience_ids=[experience.experience_id])
+        )

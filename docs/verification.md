@@ -1,5 +1,8 @@
 # Verification and practical limits
 
+Current execution evidence: [memory-loop-acceptance.md](memory-loop-acceptance.md), [assistant-live-results.json](assistant-live-results.json), and the current regression tests. These supersede historical Nomic/Ollama observations below. The active models are direct NVIDIA Nemotron 3 Ultra and 2048-dimensional Nemotron 3 Embed 1B. Real-provider assistant extraction, cross-session recall, observed-outcome learning and later procedure context passed in an isolated local PostgreSQL schema. Sustained outages and production discovery precision remain untested.
+
+
 The implementation was tested progressively before advancing through the twelve phases. The latest completion-pass suite contains **92 passing tests on both Windows Python 3.11 and the pinned Linux Python 3.12 Docker image**, with PostgreSQL and Redis enabled and no skips. Ruff checks and formatting pass. One upstream Starlette/httpx test-client deprecation warning remains; live HTTP tests independently exercise real TCP requests.
 
 ## Completion-pass live evidence

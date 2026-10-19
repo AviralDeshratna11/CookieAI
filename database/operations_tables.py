@@ -28,6 +28,9 @@ jobs = Table(
     Column("lease_until", DateTime(timezone=True)),
     Column("lease_token", Uuid),
     Column("last_error", String(200)),
+    Column("dependencies", JSON, nullable=False, default=dict),
+    Column("started_at", DateTime(timezone=True)),
+    Column("finished_at", DateTime(timezone=True)),
 )
 Index("ix_jobs_ready", jobs.c.status, jobs.c.available_at, jobs.c.priority)
 retrieval_events = Table(

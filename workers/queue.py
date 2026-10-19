@@ -1,15 +1,17 @@
 """Durable at-least-once jobs, SQL leases, bounded retries and caller identity."""
 
+from contextlib import nullcontext
 from datetime import timedelta
 from uuid import uuid4
 
-from sqlalchemy import and_, insert, or_, select, update
+from sqlalchemy import and_, case, insert, or_, select, update
 
 from database import operations_tables as o
 from memory.schemas import utcnow
+from memory.security.identifiers import job_key
 
 QUEUES = set(
-    "memory.extract memory.embed memory.graph memory.episode memory.experience memory.consolidate memory.reflect memory.serendipity memory.validate memory.decay memory.reindex memory.delete DREAMER".split()
+    "memory.extract memory.embed memory.graph memory.episode memory.experience memory.consolidate memory.reflect memory.serendipity memory.validate memory.decay memory.reindex memory.delete memory.summarize memory.agent_turn DREAMER".split()
 )
 
 
@@ -18,7 +20,9 @@ class JobQueue:
         self.engine = engine
         self.context = context
 
-    def enqueue(self, ctx, queue, payload, idempotency_key, priority=5):
+    def enqueue(
+        self, ctx, queue, payload, idempotency_key, priority=5, connection=None
+    ):
         from database.repositories.memory import SQLMemoryRepository
 
         if queue not in QUEUES:
@@ -30,19 +34,24 @@ class JobQueue:
         )
         if len(idempotency_key) > 128:
             raise ValueError("idempotency key exceeds 128 characters")
-        idempotency_key = f"{ctx.namespace_id}:{idempotency_key}"
-        with self.engine.begin() as db:
+        legacy_key = f"{ctx.namespace_id}:{idempotency_key}"
+        idempotency_key = job_key(ctx.namespace_id, idempotency_key)
+        with (
+            nullcontext(connection) if connection is not None else self.engine.begin()
+        ) as db:
             repo = SQLMemoryRepository(db, ctx)
             repo.lock_namespace()
             existing = db.execute(
                 select(o.jobs.c.id).where(
-                    o.jobs.c.idempotency_key == idempotency_key,
+                    o.jobs.c.idempotency_key.in_([idempotency_key, legacy_key]),
                     o.jobs.c.namespace_id == ctx.namespace_id,
                 )
             ).scalar()
             if existing:
                 return existing
             job_id = uuid4()
+            from workers.dependencies import references
+
             db.execute(
                 insert(o.jobs).values(
                     id=job_id,
@@ -55,6 +64,10 @@ class JobQueue:
                     priority=priority,
                     created_at=utcnow(),
                     available_at=utcnow(),
+                    dependencies={
+                        **references(queue, ctx, payload),
+                        "key_format": "hashed-v1",
+                    },
                 )
             )
             return job_id
@@ -76,7 +89,13 @@ class JobQueue:
                         and_(o.jobs.c.status == "RUNNING", o.jobs.c.lease_until < now),
                     )
                 )
-                .order_by(o.jobs.c.priority, o.jobs.c.created_at)
+                .order_by(
+                    case(
+                        (o.jobs.c.created_at <= now - timedelta(minutes=10), 0),
+                        else_=o.jobs.c.priority,
+                    ),
+                    o.jobs.c.created_at,
+                )
                 .limit(1)
             )
             if self.context:
@@ -96,6 +115,8 @@ class JobQueue:
                     status="RUNNING",
                     lease_token=token,
                     lease_until=now + timedelta(minutes=10),
+                    started_at=now,
+                    finished_at=None,
                 )
             )
             return {**row, "lease_token": token}
@@ -113,6 +134,16 @@ class JobQueue:
             status = (
                 "DONE" if error is None else "FAILED" if attempts >= 5 else "PENDING"
             )
+            response = getattr(error, "response", None)
+            limited = response is not None and response.status_code == 429
+            delay = min(300, 2**attempts)
+            if limited:
+                try:
+                    delay = max(
+                        60, min(900, int(response.headers.get("Retry-After", "60")))
+                    )
+                except ValueError:
+                    delay = 60
             # Log only exception class; model/source content must not become queue-error text.
             db.execute(
                 update(o.jobs)
@@ -122,10 +153,15 @@ class JobQueue:
                 .values(
                     status=status,
                     retry_count=attempts,
-                    last_error=type(error).__name__ if error else None,
+                    last_error="ProviderRateLimited"
+                    if limited
+                    else type(error).__name__
+                    if error
+                    else None,
+                    finished_at=utcnow() if status in {"DONE", "FAILED"} else None,
                     lease_until=None,
                     lease_token=None,
-                    available_at=utcnow() + timedelta(seconds=min(300, 2**attempts)),
+                    available_at=utcnow() + timedelta(seconds=delay),
                 )
             )
 

@@ -131,6 +131,12 @@ def create_app(settings=None, service=None, auth=None):
             content={"detail": "invalid memory proposal or model output"},
         )
 
+    from memory.context.budget import ContextBudgetExceeded
+
+    @app.exception_handler(ContextBudgetExceeded)
+    async def context_too_large(request, error):
+        return JSONResponse(status_code=422, content={"detail": str(error)})
+
     def authenticated(
         credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
     ):
@@ -158,6 +164,49 @@ def create_app(settings=None, service=None, auth=None):
         return dependency
 
     read, write, remove = context("read"), context("write"), context("delete")
+
+    from memory.agent.service import AgentService, TurnFeedback, TurnInput
+
+    agent_service = AgentService(service)
+
+    @app.get("/v1/operations/status")
+    def operation_status(ctx=Depends(read)):
+        from memory.operations import OperationsService
+
+        return OperationsService(service).status(ctx)
+
+    @app.post("/v1/agent/turn", status_code=202)
+    def agent_turn(body: TurnInput, ctx=Depends(write)):
+        result = agent_service.submit(ctx, body)
+        return JSONResponse(status_code=202 if body.retain else 200, content=result)
+
+    @app.get("/v1/agent/turn/{turn_id}")
+    def agent_turn_get(turn_id: UUID, ctx=Depends(read)):
+        return agent_service.get(ctx, turn_id)
+
+    @app.post("/v1/agent/turn/{turn_id}/feedback")
+    def agent_turn_feedback(turn_id: UUID, body: TurnFeedback, ctx=Depends(write)):
+        return agent_service.feedback(ctx, turn_id, body)
+
+    @app.get("/v1/context/continuity")
+    def continuity_get(ctx=Depends(read)):
+        from memory.context.continuity import ContinuityService
+
+        return ContinuityService(service).load(ctx)
+
+    @app.post("/v1/context/refresh", status_code=202)
+    def continuity_refresh(ctx=Depends(write)):
+        from uuid import uuid4
+
+        from workers.queue import JobQueue
+
+        return {
+            "job_id": str(
+                JobQueue(service.engine).enqueue(
+                    ctx, "memory.summarize", {}, "continuity:" + uuid4().hex
+                )
+            )
+        }
 
     @app.post("/v1/sessions/{completed_session_id}/complete")
     def session_complete(completed_session_id: UUID, ctx=Depends(write)):

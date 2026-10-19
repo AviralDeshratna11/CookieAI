@@ -5,6 +5,7 @@ from sqlalchemy import insert, select
 
 from database import experience_tables as x
 from database import learning_tables as l
+from database import tables as t
 from database.repositories.memory import SQLMemoryRepository
 from memory.episodes.service import Episode, EpisodeService
 from memory.provenance.policy import evidence_policy
@@ -220,11 +221,18 @@ class ExperienceService:
         with self.memory.engine.begin() as connection:
             repo = SQLMemoryRepository(connection, ctx)
             result = []
-            for row in connection.execute(select(x.experiences.c.payload)):
+            rows = connection.execute(
+                select(x.experiences.c.payload)
+                .join(t.memories, t.memories.c.id == x.experiences.c.id)
+                .where(t.memories.c.namespace_id == ctx.namespace_id)
+            ).all()
+            permitted = repo.get_many(
+                [UUID(row.payload["experience_id"]) for row in rows], strict=False
+            )
+            for row in rows:
                 experience = Experience.model_validate(row.payload)
-                try:
-                    memory = repo.get(experience.experience_id)
-                except NotFound:
+                memory = permitted.get(experience.experience_id)
+                if memory is None:
                     continue
                 if memory.status.value not in {"ACTIVE", "DISPUTED"}:
                     continue

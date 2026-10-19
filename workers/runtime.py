@@ -18,6 +18,14 @@ class Worker:
         self.queue = JobQueue(memory.engine, context)
 
     def execute(self, queue, ctx, payload):
+        if queue == "memory.agent_turn":
+            from memory.agent.service import AgentService
+
+            return AgentService(self.memory).process(ctx, UUID(payload["turn_id"]))
+        if queue == "memory.summarize":
+            from memory.context.continuity import ContinuityService
+
+            return ContinuityService(self.memory).build(ctx)
         from memory.decay.service import DynamicsService
         from memory.episodes.service import EpisodeService
         from memory.reflection.engine import ReflectionEngine
@@ -60,9 +68,14 @@ class Worker:
                         break
             experience = ExperienceService(self.memory).compile(ctx, ids)
             if len(ids) >= 3 and experience.successful_actions:
-                ProcedureService(self.memory).compile(
-                    ctx, ProcedureCompile(experience_ids=[experience.experience_id])
-                )
+                try:
+                    ProcedureService(self.memory).compile(
+                        ctx, ProcedureCompile(experience_ids=[experience.experience_id])
+                    )
+                except ValueError:
+                    # Retain a useful experience even if observed action order
+                    # does not justify a reusable procedure.
+                    log.info("procedure_not_supported_by_observed_sequences")
             return experience
         if queue in {"memory.reflect", "memory.validate"}:
             return ReflectionEngine(self.memory).run(ctx)

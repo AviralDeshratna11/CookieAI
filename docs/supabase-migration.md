@@ -1,5 +1,8 @@
 # Supabase migration status
 
+For the latest additive schema upgrade, stop API/worker writers and run `.venv\Scripts\python.exe -m scripts.upgrade_memory_runtime`; it takes a fresh hosted backup, atomically upgrades 0015?0017, verifies the canonical ID digest, and applies restricted grants/RLS to continuity_snapshots and agent_turns. This upgrades the existing hosted database; do not rerun the original local-to-hosted copy. See [rollback and retention boundaries](memory-loop-acceptance.md).
+
+
 Destination project: `paipjmkfgizkfyajskze` (`https://paipjmkfgizkfyajskze.supabase.co`), supplied by the user. On 2026-10-19, all 44 application tables were copied in a single transaction to PostgreSQL 17.11 / pgvector 0.8.2, preserving IDs and all 125 memory records. Every table's row count and content fingerprint matched. See [migration results](supabase-migration-results.json).
 
 **Cutover completed on 2026-10-19.** The API and worker now use the IPv4 Session pooler at `aws-0-ap-northeast-1.pooler.supabase.com:5432`. Both Windows and Docker connect with TLS. The original local PostgreSQL volume remains a rollback snapshot; Redis, API, worker and Ollama still run on this PC. Credentials are saved in ignored `.env.supabase`.

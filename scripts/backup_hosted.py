@@ -11,7 +11,7 @@ from dotenv import dotenv_values
 from sqlalchemy.engine import make_url
 
 
-def main():
+def main(restore_drill=False):
     url = make_url(
         dotenv_values(".env.supabase")["MEMORY_HOSTED_MIGRATION_DATABASE_URL"]
     )
@@ -76,6 +76,77 @@ def main():
             "encrypted": False,
             "scope": "Hosted public application schema; excludes managed auth/storage",
         }
+        if restore_drill:
+            target = "memory_hosted_drill_" + uuid4().hex
+            local = ["docker", "compose", "exec", "-T", "postgres"]
+
+            def run(*args):
+                return subprocess.run(
+                    [*local, *args], check=True, capture_output=True, text=True
+                )
+
+            try:
+                run("createdb", "-U", "memory", target)
+                run(
+                    "psql",
+                    "-U",
+                    "memory",
+                    "-d",
+                    target,
+                    "-v",
+                    "ON_ERROR_STOP=1",
+                    "-c",
+                    "CREATE SCHEMA IF NOT EXISTS extensions; CREATE EXTENSION vector WITH SCHEMA public;",
+                )
+                listing = run("pg_restore", "--list", remote).stdout
+                # A schema-only dump does not include extension-owned vector
+                # types. Preinstall them in public; skip only its CREATE SCHEMA
+                # entry in this isolated destination, preserving the full data.
+                listing = (
+                    "\n".join(
+                        ";" + line if " SCHEMA - public " in line else line
+                        for line in listing.splitlines()
+                    )
+                    + "\n"
+                )
+                subprocess.run(
+                    [*local, "tee", remote + ".list"],
+                    input=listing,
+                    text=True,
+                    check=True,
+                    capture_output=True,
+                )
+                run(
+                    "pg_restore",
+                    "-U",
+                    "memory",
+                    "-d",
+                    target,
+                    "--no-owner",
+                    "--no-privileges",
+                    "--exit-on-error",
+                    "--use-list",
+                    remote + ".list",
+                    remote,
+                )
+                result = run(
+                    "psql",
+                    "-U",
+                    "memory",
+                    "-d",
+                    target,
+                    "-At",
+                    "-c",
+                    "SELECT count(*) FROM public.memories",
+                )
+                report["restore_drill"] = {
+                    "status": "passed",
+                    "canonical_records": int(result.stdout.strip()),
+                    "destination": "fresh isolated local PostgreSQL database; removed after verification",
+                }
+            finally:
+                run("dropdb", "-U", "memory", "--if-exists", target)
+                run("rm", "-f", remote + ".list")
         Path("docs/hosted-backup-results.json").write_text(
             json.dumps(report, indent=2), encoding="utf-8"
         )
@@ -95,4 +166,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--restore-drill", action="store_true")
+    main(parser.parse_args().restore_drill)

@@ -1,5 +1,8 @@
 # Master requirements traceability matrix
 
+Execution evidence supplement: [memory-loop-acceptance.md](memory-loop-acceptance.md) maps the latest requested capabilities to code, tests and residual boundaries. All original sections and clause groups below remain applicable. No clause is promoted from unverified solely because its related endpoint or test exists. Shared additions cover finding revision, scoped erasure, continuity, context budgets, assistant outcomes, ordered procedures and bounded structured discovery; representative accuracy, enterprise/modality requirements and sustained operations remain partial.
+
+
 Source SHA-256: `19ab4682d08cf3c269f1ae7712e6b679d7b5144f49b67a6e043b011f66f736d0`.
 
 All 108 sections (0–107) are inventoried below, followed by source clause groups with stable IDs. A partial section means code exists but its entire requirement set is not proven. Individual clauses are explicitly unverified until requirement-specific evidence is assigned; this inventory is not a claim that a complete clause-by-clause acceptance audit has passed.

@@ -81,3 +81,61 @@ def test_missing_credential_file_fails_closed(service):
         ).status_code
         == 401
     )
+
+
+def test_assistant_http_submission_worker_completion_and_feedback(
+    service, ctx, monkeypatch
+):
+    from models.providers import Provider
+    from workers.runtime import Worker
+
+    token = "synthetic-assistant-contract-token"
+    auth = Authenticator(
+        [
+            Credential(
+                hashlib.sha256(token.encode()).hexdigest(),
+                ctx.user_id,
+                ctx.requesting_agent_id,
+                ctx.namespace_id,
+            )
+        ]
+    )
+    client = TestClient(create_app(service=service, auth=auth))
+    headers = {
+        "Authorization": "Bearer " + token,
+        "X-Session-ID": str(ctx.session_id),
+        "X-Purpose": "synthetic assistant API test",
+    }
+    monkeypatch.setattr(
+        Provider,
+        "post",
+        lambda *_: {
+            "choices": [
+                {"message": {"content": "Recorded your synthetic observation."}}
+            ]
+        },
+    )
+    body = {
+        "message": "Synthetic API observation",
+        "mode": "raw",
+        "idempotency_key": "api-turn",
+    }
+    assert client.post("/v1/agent/turn", json=body).status_code == 401
+    submitted = client.post("/v1/agent/turn", json=body, headers=headers)
+    assert submitted.status_code == 202
+    identity = submitted.json()["turn_id"]
+    assert Worker(service).run_once()
+    completed = client.get("/v1/agent/turn/" + identity, headers=headers)
+    assert completed.status_code == 200 and completed.json()["status"] == "COMPLETED"
+    assert completed.json()["job_status"] == "DONE"
+    feedback = {"feedback_id": str(uuid4())}
+    first = client.post(
+        f"/v1/agent/turn/{identity}/feedback", json=feedback, headers=headers
+    )
+    assert first.status_code == 200
+    assert (
+        client.post(
+            f"/v1/agent/turn/{identity}/feedback", json=feedback, headers=headers
+        ).json()
+        == first.json()
+    )

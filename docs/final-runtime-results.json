@@ -1,0 +1,68 @@
+{
+  "health_http": 200,
+  "context_seconds": 18.828,
+  "budget": {
+    "limit": 8000,
+    "count": 7082,
+    "counter": "model_tokenizer",
+    "scope": "serialized context JSON, excluding full chat-template overhead",
+    "tokenizer_sha256": "623c34567aebb18582765289fbe23d901c62704d6518d71866e0e58db892b5b7"
+  },
+  "context_recall": true,
+  "operations": {
+    "counts": [
+      {
+        "queue": "DREAMER",
+        "status": "DONE",
+        "count": 1
+      },
+      {
+        "queue": "memory.consolidate",
+        "status": "DONE",
+        "count": 1
+      },
+      {
+        "queue": "memory.decay",
+        "status": "DONE",
+        "count": 1
+      },
+      {
+        "queue": "memory.experience",
+        "status": "DONE",
+        "count": 25
+      },
+      {
+        "queue": "memory.graph",
+        "status": "DONE",
+        "count": 129
+      },
+      {
+        "queue": "memory.reflect",
+        "status": "DONE",
+        "count": 44
+      },
+      {
+        "queue": "memory.serendipity",
+        "status": "DONE",
+        "count": 4
+      },
+      {
+        "queue": "memory.summarize",
+        "status": "DONE",
+        "count": 2
+      }
+    ],
+    "oldest_pending_age_seconds": null,
+    "last_successful_job_at": "2026-10-19T19:21:40.483169+00:00",
+    "workers": [
+      {
+        "stage": "outbox",
+        "progress_age_seconds": 0.4698781967163086,
+        "stalled": false
+      }
+    ],
+    "redis": "available",
+    "stalled_work_is_healthy": false
+  },
+  "status": "passed"
+}

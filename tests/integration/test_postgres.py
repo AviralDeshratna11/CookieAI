@@ -18,6 +18,146 @@ from models.providers import HashEmbedding
 pytestmark = pytest.mark.postgres
 
 
+@pytest.mark.skipif(
+    not os.environ.get("MEMORY_LIVE_ACCEPTANCE"),
+    reason="opt-in bounded real free-provider acceptance",
+)
+def test_live_nvidia_assistant_outcome_and_later_procedure(postgres, ctx):
+    """Synthetic observations in an isolated local PG schema, real NVIDIA models."""
+    import json
+    from pathlib import Path
+    from uuid import UUID
+
+    from memory.agent.service import AgentService, TurnFeedback, TurnInput
+    from memory.context.continuity import ContinuityService
+    from memory.episodes.service import EpisodeInput, ToolAttempt
+    from memory.experiences.service import ExperienceQuery
+    from memory.procedures.service import ProcedureService
+    from memory.schemas import RememberRequest
+    from models.providers import CompatibleEmbedding, CompatibleExtractor
+    from workers.runtime import Worker
+
+    settings = Settings(
+        _env_file=(".env", ".env.cloud"),
+        context_tokenizer_file="config/nemotron-tokenizer.json",
+    )
+    service = MemoryService(
+        postgres, CompatibleEmbedding(settings), CompatibleExtractor(settings), settings
+    )
+    remember = RememberRequest.model_validate(
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Synthetic project Cedar uses PostgreSQL. Remember this database choice.",
+                }
+            ],
+            "mode": "infer",
+            "remember_explicitly": True,
+            "idempotency_key": "live-cedar",
+        }
+    )
+    recorded = service.remember(ctx, remember)
+    assert recorded and any("PostgreSQL" in m.text for m in recorded)
+    agent = AgentService(service)
+    fresh = ctx.model_copy(update={"session_id": uuid4()})
+    submitted = agent.submit(
+        fresh,
+        TurnInput(
+            message="Which database does synthetic project Cedar use?",
+            mode="raw",
+            idempotency_key="live-recall",
+        ),
+    )
+    # Execute only the exact submitted job; no other namespace or user's queue is consumed.
+    worker = Worker(service, fresh)
+    assert worker.run_once()
+    first = agent.get(fresh, UUID(submitted["turn_id"]))
+    assert first["status"] == "COMPLETED" and "postgresql" in first["answer"].casefold()
+    signature = {
+        "domain": "synthetic infra",
+        "goal_type": "repair",
+        "error_category": "certificate",
+        "workflow_stage": "recovery",
+    }
+    for index in range(3):
+        outcome = agent.feedback(
+            fresh,
+            UUID(submitted["turn_id"]),
+            TurnFeedback(
+                feedback_id=uuid4(),
+                episode=EpisodeInput(
+                    title=f"Synthetic recovery {index}",
+                    trigger="synthetic incident",
+                    goal="restore TLS",
+                    context=signature,
+                    outcome="success",
+                    attempts=[
+                        ToolAttempt(
+                            tool="certbot",
+                            intent="restore TLS",
+                            action="inspect certificate",
+                            success=True,
+                        ),
+                        ToolAttempt(
+                            tool="certbot",
+                            intent="restore TLS",
+                            action="renew certificate",
+                            success=True,
+                        ),
+                    ],
+                ),
+            ),
+        )
+        worker.execute(
+            "memory.experience", fresh, {"episode_id": outcome["episode_id"]}
+        )
+    procedures = ProcedureService(service).search(
+        fresh, ExperienceQuery(context_signature=signature)
+    )
+    assert procedures and procedures[0]["procedure"]["steps"] == [
+        "inspect certificate",
+        "renew certificate",
+    ]
+    assert ContinuityService(service).build(fresh)
+    later = fresh.model_copy(update={"session_id": uuid4()})
+    second = agent.submit(
+        later,
+        TurnInput(
+            message="For a similar certificate incident, what previously observed procedure can I consider?",
+            mode="raw",
+            context_signature=signature,
+            idempotency_key="live-reuse",
+        ),
+    )
+    # The earlier summary/outcome jobs remain durable; execute the exact turn via the worker handler.
+    worker.execute("memory.agent_turn", later, {"turn_id": second["turn_id"]})
+    result = agent.get(later, UUID(second["turn_id"]))
+    assert result["status"] == "COMPLETED"
+    assert procedures[0]["procedure"]["procedure_id"] in result["context_memory_ids"]
+    report = {
+        "kind": "synthetic isolated local PostgreSQL schema with real NVIDIA LLM and embeddings",
+        "status": "passed",
+        "llm": settings.extraction_model,
+        "embedding": settings.embedding_model,
+        "dimensions": settings.embedding_dimensions,
+        "extraction": True,
+        "cross_session_assistant_recall": True,
+        "outcome_to_procedure": True,
+        "later_assistant_received_procedure": True,
+        "continuity_snapshot": True,
+        "tokenizer": service.token_counter.mode,
+        "not_tested": [
+            "production discovery precision",
+            "sustained provider outage",
+            "hosted database interruption",
+        ],
+    }
+    Path("docs/assistant-live-results.json").write_text(
+        json.dumps(report, indent=2), encoding="utf-8"
+    )
+
+
 def test_external_migration_transaction_rolls_back_schema_and_data():
     url = os.environ.get("MEMORY_TEST_DATABASE_URL")
     if not url:
@@ -113,7 +253,7 @@ def test_real_pgvector_migration_transactions_and_concurrent_dedup(postgres, ctx
         )
         assert (
             db.execute(text("SELECT version_num FROM alembic_version")).scalar()
-            == "0014"
+            == "0017"
         )
     service.delete(ctx, memory_ids[0])
     assert (

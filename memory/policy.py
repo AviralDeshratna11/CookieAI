@@ -6,6 +6,8 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from memory.context.budget import DEFAULT_ALLOCATION
+
 
 class Policy(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -23,6 +25,7 @@ class Policy(BaseModel):
     serendipity_novelty: float = Field(default=0.45, ge=0, le=1)
     serendipity_utility: float = Field(default=0.40, ge=0, le=1)
     half_life_days: int = Field(default=180, ge=1)
+    context_allocation: dict[str, float] = DEFAULT_ALLOCATION
     scoring_weights: dict[str, float] = {
         "semantic": 0.27,
         "keyword": 0.11,
@@ -39,6 +42,14 @@ class Policy(BaseModel):
 
     @model_validator(mode="after")
     def normalized_weights(self):
+        if (
+            set(self.context_allocation) != set(DEFAULT_ALLOCATION)
+            or any(v <= 0 for v in self.context_allocation.values())
+            or abs(sum(self.context_allocation.values()) - 1) > 1e-6
+        ):
+            raise ValueError(
+                "context allocation must contain positive documented sections summing to one"
+            )
         allowed = {
             "semantic",
             "keyword",

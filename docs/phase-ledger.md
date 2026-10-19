@@ -1,5 +1,8 @@
 ﻿# Implementation and acceptance ledger
 
+Latest execution: dependency-scoped deletion, revision-aware general findings, structured miners, durable continuity, model-token context budgets and an authenticated assistant/outcome loop are implemented. The bounded real NVIDIA assistant/procedure test passed. See [current acceptance](memory-loop-acceptance.md); earlier phase counts below are historical and do not certify the entire master prompt.
+
+
 All master capabilities remain part of the target. This records implemented initial behavior and the tests passed before advancement; interfaces and synthetic fixtures do not establish production model quality.
 
 | Phase | Implemented behavior | Gate |

@@ -1,5 +1,8 @@
 # Current connections and cloud transition
 
+The current memory/assistant loop is documented in [memory-loop-acceptance.md](memory-loop-acceptance.md). It retains the NVIDIA models and Supabase configuration below. The public Nemotron tokenizer is pinned by config/tokenizer-manifest.json; its local artifact is downloaded separately and Git-ignored. No paid fallback is configured.
+
+
 Verified configuration on 2026-10-19:
 
 | Component | Active implementation | Runs where |

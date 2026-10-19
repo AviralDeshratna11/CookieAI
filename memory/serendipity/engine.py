@@ -8,6 +8,7 @@ from sqlalchemy import insert, select
 
 from database import experience_tables as x
 from database import reflection_tables as r
+from database import tables as t
 from database.repositories.memory import SQLMemoryRepository
 from memory.experiences.service import Experience, structural_similarity
 from memory.provenance.policy import evidence_policy
@@ -51,7 +52,13 @@ class SerendipityEngine:
             repo.lock_namespace()
             policy = self.memory.policy(repo)
             experiences = []
-            for row in connection.execute(select(x.experiences.c.payload)):
+            for row in connection.execute(
+                select(x.experiences.c.payload)
+                .join(t.memories, t.memories.c.id == x.experiences.c.id)
+                .where(t.memories.c.namespace_id == ctx.namespace_id)
+                .order_by(t.memories.c.payload["updated_at"].as_string().desc())
+                .limit(300)
+            ):
                 experience = Experience.model_validate(row.payload)
                 try:
                     memory = repo.get(experience.experience_id)
@@ -80,7 +87,13 @@ class SerendipityEngine:
                 ),
                 reverse=True,
             )
-            near = candidates[: max_pairs // 2]
+            near = candidates[: max(1, max_pairs // 3)]
+            temporal = sorted(
+                candidates,
+                key=lambda pair: abs(
+                    (pair[0].last_observed - anchor.last_observed).total_seconds()
+                ),
+            )[: max(1, max_pairs // 3)]
             distant = [
                 pair
                 for pair in candidates
@@ -90,7 +103,9 @@ class SerendipityEngine:
             self.rng.shuffle(distant)
             proposals = []
             seen = set()
-            for candidate, candidate_memory in near + distant[: max_pairs - len(near)]:
+            for candidate, candidate_memory in (
+                near + temporal + distant[: max_pairs - len(near) - len(temporal)]
+            ):
                 if candidate.experience_id in seen:
                     continue
                 seen.add(candidate.experience_id)
@@ -208,7 +223,19 @@ class SerendipityEngine:
                     "status": "ACTIVE" if active else "CANDIDATE",
                     "critic_verdict": verdict,
                     "last_validated": utcnow().isoformat(),
+                    "applicability_conditions": anchor.applicability_conditions,
+                    "limitations": [
+                        "Bounded to 300 recent authorized experiences and configured pair budget",
+                        "Structural, temporal and distant-domain neighbors are search heuristics",
+                    ],
+                    "alternative_explanations": [
+                        "Shared source events or domain confounding"
+                    ],
+                    "derivation": "STRUCTURAL_ANALOGY",
                 }
+                from memory.insights.lifecycle import seal
+
+                payload = seal(payload, episode_evidence)
                 connection.execute(
                     insert(r.insights).values(
                         id=memory.memory_id,

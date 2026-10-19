@@ -1,12 +1,15 @@
+from collections import Counter
 from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import insert, select, update
 
 from database import experience_tables as x
+from database import learning_tables as learning
 from database import procedure_tables as p
 from database import tables as t
 from database.repositories.memory import SQLMemoryRepository
+from memory.episodes.service import Episode
 from memory.experiences.service import (
     Experience,
     ExperienceQuery,
@@ -94,17 +97,45 @@ class ProcedureService:
                 raise ValueError(
                     "learned procedure requires at least three independent episodes"
                 )
-            steps = list(
+            observed = []
+            producers = set()
+            for identity in episodes:
+                repo.get(identity)
+                payload = connection.execute(
+                    select(learning.episodes.c.payload).where(
+                        learning.episodes.c.id == identity
+                    )
+                ).scalar_one()
+                episode = Episode.model_validate(payload)
+                producer = episode.event_id or episode.episode_id
+                if producer not in producers:
+                    producers.add(producer)
+                    observed.append(episode)
+            sequences = Counter(
+                tuple(a.action for a in e.attempts if a.success)
+                for e in observed
+                if e.outcome.casefold() == "success"
+                and any(a.success for a in e.attempts)
+            )
+            if not sequences:
+                raise ValueError("no observed successful strategy")
+            sequence, repeated = sequences.most_common(1)[0]
+            if not request.confirmation_memory_id and repeated < 3:
+                raise ValueError(
+                    "ordered procedure requires three matching observed successful sequences"
+                )
+            steps = list(sequence)
+            successes = sum(e.outcome.casefold() == "success" for e in observed)
+            failures = len(observed) - successes
+            recoveries = list(
                 dict.fromkeys(
-                    action
-                    for experience in experiences
-                    for action in experience.successful_actions
+                    a.action
+                    for e in observed
+                    for index, a in enumerate(e.attempts)
+                    if a.success
+                    and any(not previous.success for previous in e.attempts[:index])
                 )
             )
-            if not steps:
-                raise ValueError("no observed successful strategy")
-            successes = sum(experience.success_count for experience in experiences)
-            failures = sum(experience.failure_count for experience in experiences)
             confidence = min(0.9, (successes + 1) / (successes + failures + 3))
             memory = self.memory._create(
                 repo,
@@ -136,7 +167,7 @@ class ProcedureService:
                         for a in experience.failed_actions
                     )
                 ),
-                recovery_steps=steps,
+                recovery_steps=recoveries,
                 source_episode_ids=episodes,
                 source_experience_ids=request.experience_ids,
                 context_signature=experiences[0].context_signature,
@@ -179,11 +210,18 @@ class ProcedureService:
         with self.memory.engine.begin() as connection:
             repo = SQLMemoryRepository(connection, ctx)
             results = []
-            for row in connection.execute(select(p.procedures.c.payload)):
+            rows = connection.execute(
+                select(p.procedures.c.payload)
+                .join(t.memories, t.memories.c.id == p.procedures.c.id)
+                .where(t.memories.c.namespace_id == ctx.namespace_id)
+            ).all()
+            permitted = repo.get_many(
+                [UUID(row.payload["procedure_id"]) for row in rows], strict=False
+            )
+            for row in rows:
                 procedure = Procedure.model_validate(row.payload)
-                try:
-                    memory = repo.get(procedure.procedure_id)
-                except NotFound:
+                memory = permitted.get(procedure.procedure_id)
+                if memory is None:
                     continue
                 if memory.status.value != "ACTIVE":
                     continue

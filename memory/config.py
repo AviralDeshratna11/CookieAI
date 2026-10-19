@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     extraction_response_format: str = "json_schema"
     reflection_backend: str = "rules"
     general_discovery_enabled: bool = False
+    structured_discovery_enabled: bool = True
     candidate_retention_days: int = Field(default=30, ge=1, le=365)
     reflection_model: str | None = None
     critic_model: str | None = None
@@ -43,6 +44,8 @@ class Settings(BaseSettings):
     serendipity_interval_seconds: int = Field(default=3600, ge=60)
     daily_interval_seconds: int = Field(default=86400, ge=60)
     dreamer_interval_seconds: int = Field(default=604800, ge=60)
+    worker_event_batch_size: int = Field(default=5, ge=1, le=100)
+    worker_stall_seconds: int = Field(default=600, ge=60, le=3600)
     rolling_messages: int = Field(default=10, ge=1, le=100)
     extraction_threshold: float = Field(default=0.55, ge=0, le=1)
     max_memories_per_turn: int = Field(default=12, ge=1, le=12)
@@ -51,6 +54,13 @@ class Settings(BaseSettings):
     request_timeout_seconds: float = Field(default=60, gt=0, le=300)
     model_response_bytes: int = Field(default=262144, ge=1024, le=1048576)
     max_memory_tokens: int = Field(default=8000, ge=1000, le=128000)
+    context_tokenizer_file: Path | None = None
+
+    @field_validator("context_tokenizer_file", mode="before")
+    @classmethod
+    def optional_tokenizer_path(cls, value):
+        return None if value == "" else value
+
     query_rewriter_backend: str = "local-rule"
     scoring_weights: dict[str, float] = {
         "semantic": 0.27,

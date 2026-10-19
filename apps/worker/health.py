@@ -1,6 +1,7 @@
 """Read only the namespace-scoped worker heartbeat; no model calls."""
 
 import os
+import time
 from pathlib import Path
 
 import redis
@@ -22,8 +23,16 @@ def main():
     alive = connection.exists(
         f"memory.worker:{ctx.namespace_id}:{ctx.requesting_agent_id}"
     )
+    progress = connection.hget(
+        f"memory.worker.progress:{ctx.namespace_id}:{ctx.requesting_agent_id}",
+        "updated_at",
+    )
+    progressing = (
+        progress is not None
+        and time.time() - float(progress) <= Settings().worker_stall_seconds
+    )
     connection.close()
-    raise SystemExit(0 if alive else 1)
+    raise SystemExit(0 if alive and progressing else 1)
 
 
 if __name__ == "__main__":

@@ -15,7 +15,10 @@ class ContextPacket(StrictModel):
     uncertainty: list[dict] = Field(default_factory=list)
 
 
-def compose(hits: list[SearchHit], token_budget=8000):
+def compose(hits: list[SearchHit], token_budget=8000, counter=None):
+    from memory.context.budget import TokenCounter
+
+    counter = counter or TokenCounter()
     packet = ContextPacket()
     categories = {
         "VERIFIED": "confirmed_facts",
@@ -39,8 +42,8 @@ def compose(hits: list[SearchHit], token_budget=8000):
             "provenance_ids": list(map(str, memory.provenance_ids)),
         }
         getattr(packet, category).append(item)
-        if len(packet.model_dump_json().encode("utf-8")) > token_budget:
+        if counter.count(packet.model_dump(mode="json")) > token_budget:
             getattr(packet, category).pop()
-    if len(packet.model_dump_json().encode("utf-8")) > token_budget:
+    if counter.count(packet.model_dump(mode="json")) > token_budget:
         raise ValueError("context budget too small for packet metadata")
     return packet

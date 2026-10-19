@@ -1,5 +1,8 @@
 # Persistent Agent Memory System Architecture
 
+The latest additions are dependency-scoped job invalidation, a shared revision-aware finding lifecycle, structured discovery, persistent ACL-partitioned continuity snapshots, and durable assistant turns with observed outcome feedback. See [the implementation and acceptance report](docs/memory-loop-acceptance.md) for current behavior and limits. PostgreSQL canonical data remains on Supabase; API/worker/Redis remain local Docker.
+
+
 Current implementation and acceptance boundaries are tracked in [completion status](docs/completion-status.md), [requirements matrix](docs/requirements-matrix.md), and [verification](docs/verification.md). The local deployment now runs real Nomic memory/entity embeddings and a separately provisioned persistent worker. Nemotron proposes and critiques tool correlations; bounded general discovery uses separate generation, counterexample and critic calls. Separate invocations of one model do not constitute independent model weights. Models propose data; deterministic authorization, evidence identity, source revision, confidence and provenance checks guard persistence. Migration 0013 adds vector/worker indexes, while lexical/graph scale limits remain explicit.
 
 ## 1. Assumptions

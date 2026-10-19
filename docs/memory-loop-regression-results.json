@@ -1,0 +1,24 @@
+{
+  "kind": "deterministic regression with isolated schemas and Redis database 15",
+  "linux_python": "3.12",
+  "linux_passed": 121,
+  "live_provider_opt_in_skipped_in_regression": 1,
+  "windows_python": "3.11",
+  "windows_passed_before_final_http_contract_addition": 120,
+  "ruff_check": "passed",
+  "ruff_format_check": "159 files passed",
+  "diff_whitespace_check": "passed",
+  "known_warning": "upstream Starlette/httpx test-client deprecation",
+  "sensitive_credential_scan": "zero matches in 244 Git-visible source/report files; private env/config ignored",
+  "not_tested": [
+    "production relation precision",
+    "sustained provider/database/network interruptions",
+    "large-corpus filtered ANN recall",
+    "full 1054-clause acceptance audit"
+  ],
+  "separate_live_nvidia_acceptance": {
+    "status": "passed",
+    "seconds": 155.85
+  },
+  "active_runtime": "final tested images running; worker healthy; no pending backlog in final status check"
+}

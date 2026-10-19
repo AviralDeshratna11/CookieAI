@@ -1,0 +1,18 @@
+{
+  "kind": "synthetic isolated local PostgreSQL schema with real NVIDIA LLM and embeddings",
+  "status": "passed",
+  "llm": "nvidia/nemotron-3-ultra-550b-a55b",
+  "embedding": "nvidia/nemotron-3-embed-1b",
+  "dimensions": 2048,
+  "extraction": true,
+  "cross_session_assistant_recall": true,
+  "outcome_to_procedure": true,
+  "later_assistant_received_procedure": true,
+  "continuity_snapshot": true,
+  "tokenizer": "model_tokenizer",
+  "not_tested": [
+    "production discovery precision",
+    "sustained provider outage",
+    "hosted database interruption"
+  ]
+}

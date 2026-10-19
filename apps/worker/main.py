@@ -51,6 +51,7 @@ def main():
     last = {}
     schedules = {
         "memory.reflect": settings.reflection_interval_seconds,
+        "memory.summarize": settings.reflection_interval_seconds,
         "memory.consolidate": settings.daily_interval_seconds,
         "memory.decay": settings.daily_interval_seconds,
         "DREAMER": settings.dreamer_interval_seconds,
@@ -60,6 +61,13 @@ def main():
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, lambda *_: stopping.set())
     heartbeat = f"memory.worker:{ctx.namespace_id}:{ctx.requesting_agent_id}"
+    progress = f"memory.worker.progress:{ctx.namespace_id}:{ctx.requesting_agent_id}"
+
+    def mark_progress(stage):
+        connection.hset(
+            progress, mapping={"stage": stage, "updated_at": str(time.time())}
+        )
+        connection.expire(progress, 900)
 
     def keep_alive():
         while not stopping.wait(30):
@@ -75,8 +83,11 @@ def main():
         while not stopping.is_set():
             try:
                 connection.set(heartbeat, str(time.time()), ex=900)
-                publisher.flush()
-                dispatcher.dispatch()
+                mark_progress("outbox")
+                publisher.flush(limit=settings.worker_event_batch_size)
+                mark_progress("dispatch")
+                dispatcher.dispatch(count=settings.worker_event_batch_size)
+                mark_progress("schedule")
                 now = time.time()
                 for queue, interval in schedules.items():
                     bucket = int(now // interval)
@@ -85,8 +96,12 @@ def main():
                             ctx, queue, {}, f"{ctx.namespace_id}:{queue}:{bucket}"
                         )
                         last[queue] = bucket
+                mark_progress("execute")
                 if not worker.run_once():
+                    mark_progress("idle")
                     stopping.wait(1)
+                else:
+                    mark_progress("job_returned")
             except Exception as error:
                 logging.warning("worker_iteration_failed: %s", type(error).__name__)
                 stopping.wait(5)

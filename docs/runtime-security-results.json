@@ -1,0 +1,23 @@
+{
+  "restricted_role": true,
+  "tls": true,
+  "default_deny": {
+    "agent_turns": 0,
+    "continuity_snapshots": 0
+  },
+  "public_api_grants": [],
+  "tables": [
+    {
+      "relname": "continuity_snapshots",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    },
+    {
+      "relname": "agent_turns",
+      "relrowsecurity": true,
+      "relforcerowsecurity": true
+    }
+  ],
+  "supabase_advisors": "Unavailable: connected account permission denied",
+  "tls_scope": "Client-to-Supabase session pooler connection; pg_stat_ssl describes the separate pooler-to-Postgres backend"
+}

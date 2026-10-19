@@ -43,6 +43,10 @@ class Episode(EpisodeInput):
     created_at: datetime = Field(default_factory=utcnow)
 
 
+class TaskPartition(StrictModel):
+    groups: list[list[UUID]] = Field(min_length=1, max_length=30)
+
+
 class EpisodeService:
     def __init__(self, memory_service):
         self.memory = memory_service
@@ -222,6 +226,18 @@ class EpisodeService:
                 )
         return episodes
 
+    @require_scope("read")
+    def get_many(self, ctx, identities):
+        with self.memory.engine.begin() as db:
+            repo = SQLMemoryRepository(db, ctx)
+            permitted = repo.get_many(identities, strict=False)
+            return [
+                Episode.model_validate(payload).model_dump(mode="json")
+                for payload in db.execute(
+                    select(l.episodes.c.payload).where(l.episodes.c.id.in_(permitted))
+                ).scalars()
+            ]
+
     @require_scope("write")
     def segment(self, ctx, memory_ids, gap_minutes=30):
         memories = sorted(
@@ -245,6 +261,39 @@ class EpisodeService:
                 groups.append([])
             groups[-1].append(memory)
         result = []
+        if self.memory.settings.reflection_backend == "compatible":
+            from models.reflection import CompatibleReflection
+
+            refined = []
+            for group in groups:
+                if len(group) < 3 or len(group) > 30:
+                    refined.append(group)
+                    continue
+                proposal = CompatibleReflection(self.memory.settings).structured(
+                    "episode_segmenter",
+                    TaskPartition,
+                    {
+                        "task": "Partition chronological observations into contiguous task segments. Return every source ID exactly once in order. Split only at a meaningful goal or task change. Never invent actions, outcomes or source IDs.",
+                        "observations": [
+                            {"id": str(m.memory_id), "text": m.text[:1200]}
+                            for m in group
+                        ],
+                    },
+                    self.memory.settings.reflection_model
+                    or self.memory.settings.extraction_model,
+                )
+                flattened = [identity for part in proposal.groups for identity in part]
+                if any(not part for part in proposal.groups) or flattened != [
+                    m.memory_id for m in group
+                ]:
+                    raise ValueError(
+                        "segmenter must preserve every source exactly once in chronological order"
+                    )
+                by_id = {m.memory_id: m for m in group}
+                refined.extend(
+                    [[by_id[identity] for identity in part] for part in proposal.groups]
+                )
+            groups = refined
         for group in groups:
             result.append(
                 self.record(

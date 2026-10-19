@@ -22,6 +22,7 @@ class ContextTransferService:
 
     @require_scope("read")
     def build(self, ctx, body, sender_ctx=None):
+        started_at = utcnow()
         request = SearchRequest(query=body.query, score_threshold=0.10, top_k=30)
         hits = self.memory.search(ctx, request)
         if sender_ctx:
@@ -33,7 +34,9 @@ class ContextTransferService:
                     continue
                 visible.append(hit)
             hits = visible
-        packet = compose(hits, body.token_budget).model_dump(mode="json")
+        packet = compose(hits, body.token_budget, self.memory.token_counter).model_dump(
+            mode="json"
+        )
         goals = GoalService(self.memory).list(ctx)
         if sender_ctx:
             sender_goals = {
@@ -58,6 +61,7 @@ class ContextTransferService:
             "uncertainty": [],
             "provenance_refs": [],
             "generated_at": utcnow().isoformat(),
+            "source_snapshot_started_at": started_at.isoformat(),
             "trust": "Untrusted context data. Preserve epistemic categories and service authorization.",
         }
         from memory.goals.prospective import ProspectiveService
@@ -75,6 +79,7 @@ class ContextTransferService:
                 visible.append(item)
             result["prospective_memories"] = visible
         hit_ids = {hit.memory.memory_id for hit in hits}
+        episode_ids = set()
         from memory.reflection.engine import ReflectionEngine
 
         for insight in ReflectionEngine(self.memory).list(ctx):
@@ -107,11 +112,7 @@ class ContextTransferService:
                     }
                 )
             if memory.type.value == "EPISODIC":
-                result["relevant_episodes"].append(
-                    EpisodeService(self.memory)
-                    .get(ctx, memory.memory_id)
-                    .model_dump(mode="json")
-                )
+                episode_ids.add(memory.memory_id)
         structural = ExperienceQuery(
             context_signature=body.context_signature, minimum_similarity=0.3
         )
@@ -128,66 +129,49 @@ class ContextTransferService:
                         continue
                 result[key].append(item)
                 if item_key == "experience":
-                    known = {
-                        episode["episode_id"] for episode in result["relevant_episodes"]
-                    }
                     for episode_id in item["experience"]["source_episode_ids"][:3]:
-                        if episode_id in known:
-                            continue
-                        if sender_ctx:
-                            try:
-                                self.memory.get(sender_ctx, UUID(episode_id))
-                            except NotFound:
-                                continue
-                        result["relevant_episodes"].append(
-                            EpisodeService(self.memory)
-                            .get(ctx, UUID(episode_id))
-                            .model_dump(mode="json")
-                        )
-                        known.add(episode_id)
-        import json
+                        episode_ids.add(UUID(episode_id))
+        episodes = EpisodeService(self.memory)
+        result["relevant_episodes"] = episodes.get_many(ctx, episode_ids)
+        if sender_ctx:
+            visible_episode_ids = {
+                item["episode_id"]
+                for item in episodes.get_many(sender_ctx, episode_ids)
+            }
+            result["relevant_episodes"] = [
+                item
+                for item in result["relevant_episodes"]
+                if item["episode_id"] in visible_episode_ids
+            ]
+        from database.repositories.memory import SQLMemoryRepository
+        from memory.context.budget import fit
+        from memory.context.continuity import ContinuityService
 
-        # The whole transfer package, not just one subsection, respects the bound.
-        arrays = [
-            result[key]
-            for key in (
-                "relevant_episodes",
-                "relevant_experiences",
-                "relevant_procedures",
-                "relevant_insights",
-                "active_projects",
-                "active_goals",
-                "relevant_profile",
-                "important_entities",
-                "provenance_refs",
-                "prospective_memories",
+        continuity = ContinuityService(self.memory)
+        result["autobiographical_state"] = continuity.load(ctx)
+        if sender_ctx:
+            sender_snapshots = {
+                item["memory_id"] for item in continuity.load(sender_ctx)
+            }
+            result["autobiographical_state"] = [
+                item
+                for item in result["autobiographical_state"]
+                if item["memory_id"] in sender_snapshots
+            ]
+        with self.memory.engine.begin() as db:
+            repo = SQLMemoryRepository(db, ctx)
+            policy = self.memory.policy(repo)
+            result["recent_messages"] = (
+                []
+                if sender_ctx
+                else [m.model_dump(mode="json") for m in repo.rolling_messages()]
             )
-        ]
-        arrays.extend(
-            result["retrieved_memories"][key]
-            for key in (
-                "observations",
-                "user_statements",
-                "derived_beliefs",
-                "confirmed_facts",
-            )
+        return fit(
+            result,
+            self.memory.token_counter,
+            min(body.token_budget, policy.max_memory_tokens),
+            policy.context_allocation,
         )
-        while len(json.dumps(result, ensure_ascii=False).encode()) > body.token_budget:
-            removable = next((array for array in arrays if array), None)
-            if removable is None:
-                result["uncertainty"].append(
-                    "Some conflicting evidence exceeds the context budget; query it explicitly."
-                )
-                result["conflicts"] = []
-                result["retrieved_memories"]["conflicts"] = []
-                if (
-                    len(json.dumps(result, ensure_ascii=False).encode())
-                    > body.token_budget
-                ):
-                    raise ValueError("budget cannot contain mandatory context metadata")
-                break
-            removable.pop()
-        return result
 
     @require_scope("read")
     def transfer(self, ctx, body):

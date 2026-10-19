@@ -25,7 +25,7 @@ def from_insight(memory_service, repo, insight, finding, feature):
     from memory.provenance.policy import evidence_policy
 
     description = json.loads(feature)
-    tool = description.get("tool")
+    tool = description.get("tool") or description.get("context")
     if not tool or finding["status"] != "ACTIVE":
         return None
     reminder = memory_service._create(

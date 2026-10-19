@@ -1,5 +1,8 @@
 ﻿# Persistent Agent Memory System
 
+Current memory/assistant implementation and test instructions: [memory loop acceptance](docs/memory-loop-acceptance.md). The full master specification remains partially unverified; see the residual-gap list in that report.
+
+
 For this PC's configured Supabase database and direct NVIDIA Nemotron APIs, use [running instructions](docs/running-locally.md). Its startup command includes `.env.supabase` and `.env.cloud`; the generic local setup below uses local database/model defaults.
 
 A runnable Python backend built from the complete MEM0 guide and overriding master specification. It preserves main memory vectors, entity vectors and relational state in PostgreSQL/pgvector, with Redis working references and event distribution.

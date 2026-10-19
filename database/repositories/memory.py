@@ -109,6 +109,25 @@ class SQLMemoryRepository:
             not memory.valid_until or instant < memory.valid_until
         )
 
+    def get_many(self, memory_ids, strict=True):
+        identities = set(memory_ids)
+        if not identities:
+            return {}
+        result = {}
+        for payload in self.db.execute(
+            select(t.memories.c.payload).where(
+                t.memories.c.id.in_(identities),
+                t.memories.c.namespace_id == self.ctx.namespace_id,
+                t.memories.c.owner_id == self.ctx.user_id,
+            )
+        ).scalars():
+            memory = Memory.model_validate(payload)
+            if self.allowed(memory):
+                result[memory.memory_id] = memory
+        if strict and set(result) != identities:
+            raise NotFound("memory not found")
+        return result
+
     def recent(self, limit=12, include_history=False, as_of=None):
         rows = self.db.execute(
             select(t.memories.c.payload)
@@ -156,7 +175,7 @@ class SQLMemoryRepository:
                 agent_id=self.ctx.requesting_agent_id,
                 operation=operation,
                 revision=memory.revision,
-                purpose=self.ctx.purpose,
+                purpose=hashlib.sha256(self.ctx.purpose.encode()).hexdigest(),
                 created_at=utcnow(),
             )
         )
@@ -403,6 +422,13 @@ class SQLMemoryRepository:
         return result
 
     def hard_delete(self, memory_id):
+        if self.db.execute(
+            select(t.tombstones.c.memory_id).where(
+                t.tombstones.c.memory_id == memory_id,
+                t.tombstones.c.namespace_id == self.ctx.namespace_id,
+            )
+        ).scalar():
+            return set()
         # Remove ALL descendants, not just direct children: no derived text may retain a deleted source.
         pending, removed = [memory_id], set()
         while pending:
@@ -427,14 +453,47 @@ class SQLMemoryRepository:
         from memory.graph.service import remove
 
         remove(self, list(removed))
-        from database import operations_tables as operations
+        for current in removed:
+            memory = self.get(current)
+            source_sessions.add(memory.source_session_id)
+            if memory.source_id:
+                source_messages.add(memory.source_id)
+        from workers.dependencies import cancel_for_erasure, scrub_turns
 
-        # Pending raw extraction jobs can contain source text; remove them before deletion can be acknowledged.
+        source_sessions = scrub_turns(self, removed, source_sessions)
+        cancel_for_erasure(self, removed, source_messages, source_sessions)
         self.db.execute(
-            delete(operations.jobs).where(
-                operations.jobs.c.namespace_id == self.ctx.namespace_id
+            update(t.mutations)
+            .where(
+                t.mutations.c.namespace_id == self.ctx.namespace_id,
+                t.mutations.c.memory_id.in_(removed),
             )
+            .values(purpose="erased")
         )
+        from memory.security.identifiers import opaque
+
+        receipts = (
+            self.db.execute(
+                select(t.ingestions).where(
+                    t.ingestions.c.namespace_id == self.ctx.namespace_id
+                )
+            )
+            .mappings()
+            .all()
+        )
+        for receipt in receipts:
+            if set(receipt["memory_ids"]).intersection(map(str, removed)):
+                key = receipt["idempotency_key"]
+                if not (key.startswith("sha256:") and len(key) == 71):
+                    self.db.execute(
+                        update(t.ingestions)
+                        .where(
+                            t.ingestions.c.namespace_id == self.ctx.namespace_id,
+                            t.ingestions.c.agent_id == receipt["agent_id"],
+                            t.ingestions.c.idempotency_key == key,
+                        )
+                        .values(idempotency_key=opaque(key))
+                    )
         for current in removed:
             memory = self.get(current)
             if memory.source_id:
@@ -460,7 +519,7 @@ class SQLMemoryRepository:
                 )
             )
         # Rolling source text must not survive deletion; receipts retain IDs only.
-        if source_messages:
+        if source_sessions:
             self.db.execute(
                 delete(t.messages).where(t.messages.c.id.in_(source_messages))
             )
