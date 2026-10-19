@@ -1,0 +1,225 @@
+from datetime import datetime
+from uuid import UUID
+
+from sqlalchemy import insert, select
+
+from database import learning_tables as l
+from database.repositories.memory import SQLMemoryRepository
+from memory.schemas import Field, MemoryCreate, Score, StrictModel, utcnow
+from memory.security.auth import NotFound, require_scope
+
+
+class ToolAttempt(StrictModel):
+    tool: str = Field(min_length=1, max_length=200)
+    intent: str = Field(min_length=1, max_length=2000)
+    action: str = Field(min_length=1, max_length=2000)
+    parameters: dict = Field(default_factory=dict)
+    result: str = Field(default="", max_length=8000)
+    latency_ms: float = Field(default=0, ge=0, allow_inf_nan=False)
+    error: str | None = Field(default=None, max_length=4000)
+    retry: int = Field(default=0, ge=0)
+    success: bool
+    failure_reason: str | None = Field(default=None, max_length=2000)
+
+
+class EpisodeInput(StrictModel):
+    title: str = Field(min_length=1, max_length=500)
+    trigger: str = Field(min_length=1, max_length=1000)
+    goal: str = Field(min_length=1, max_length=1000)
+    context: dict[str, str] = Field(default_factory=dict, max_length=30)
+    attempts: list[ToolAttempt] = Field(default_factory=list, max_length=30)
+    linked_memory_ids: list[UUID] = Field(default_factory=list, max_length=100)
+    outcome: str = Field(default="unknown", max_length=2000)
+    resolution: str | None = Field(default=None, max_length=2000)
+    start_time: datetime = Field(default_factory=utcnow)
+    end_time: datetime = Field(default_factory=utcnow)
+    importance: Score = 0.5
+
+
+class Episode(EpisodeInput):
+    episode_id: UUID
+    confidence: Score = 0.5
+    created_at: datetime = Field(default_factory=utcnow)
+
+
+class EpisodeService:
+    def __init__(self, memory_service):
+        self.memory = memory_service
+
+    def _save(self, repo, body):
+        for value in (body.start_time, body.end_time):
+            MemoryCreate.aware_time(value)
+        if body.end_time < body.start_time:
+            raise ValueError("episode end precedes start")
+        source_ids = list(body.linked_memory_ids)
+        for memory_id in source_ids:
+            repo.get(memory_id)
+        from memory.provenance.policy import evidence_policy
+
+        policy = evidence_policy([repo.get(item) for item in source_ids])
+        source_policy = {**policy}
+        if source_ids:
+            source_policy.update(
+                source_type="DERIVED",
+                provenance_ids=list(source_ids),
+                epistemic_type="INFERRED",
+            )
+        else:
+            source_policy.update(source_type="TOOL", epistemic_type="OBSERVED")
+        for attempt in body.attempts:
+            # Each tool attempt is an explicit supplied observation, never an invented model event.
+            source = self.memory._create(
+                repo,
+                MemoryCreate(
+                    text=attempt.model_dump_json(),
+                    type="OBSERVATION",
+                    **source_policy,
+                    observed_at=body.end_time,
+                    importance=body.importance,
+                ),
+            )
+            source_ids.append(source.memory_id)
+        if not source_ids:
+            raise ValueError("episode requires actual atomic observations")
+        # Capture caller-supplied event metadata as an attributed observation as well.
+        metadata_source = self.memory._create(
+            repo,
+            MemoryCreate(
+                text=body.model_dump_json(exclude={"attempts", "linked_memory_ids"}),
+                type="OBSERVATION",
+                **source_policy,
+                observed_at=body.end_time,
+            ),
+        )
+        source_ids.append(metadata_source.memory_id)
+        evidence = [repo.get(memory_id) for memory_id in source_ids]
+        allowed = None
+        projects = []
+        privacy = {"PUBLIC": 0, "NORMAL": 1, "PRIVATE": 2, "HIGHLY_PRIVATE": 3}
+        for memory in evidence:
+            if memory.allowed_agent_ids:
+                allowed = (
+                    set(memory.allowed_agent_ids)
+                    if allowed is None
+                    else allowed & set(memory.allowed_agent_ids)
+                )
+            if memory.allowed_project_ids:
+                projects = list(memory.allowed_project_ids)
+        if allowed is not None and not allowed:
+            raise ValueError("episode evidence has no common agent authorization")
+        category = max((memory.privacy_class for memory in evidence), key=privacy.get)
+        # Canonical summary is deterministic and never generalized into a universal rule.
+        summary = f"Episode: {body.title}. Goal: {body.goal}. Outcome: {body.outcome}. "
+        summary += " ".join(
+            f"Attempt {a.action}: {'succeeded' if a.success else 'failed'}."
+            for a in body.attempts
+        )
+        memory = self.memory._create(
+            repo,
+            MemoryCreate(
+                text=summary,
+                type="EPISODIC",
+                epistemic_type="INFERRED",
+                source_type="DERIVED",
+                provenance_ids=source_ids,
+                allowed_agent_ids=list(allowed or []),
+                allowed_project_ids=projects,
+                privacy_class=category,
+                observed_at=body.end_time,
+                event_at=body.start_time,
+                importance=body.importance,
+            ),
+        )
+        episode = Episode(
+            **body.model_dump(exclude={"linked_memory_ids"}),
+            linked_memory_ids=source_ids,
+            episode_id=memory.memory_id,
+        )
+        existing = repo.db.execute(
+            select(l.episodes.c.id).where(l.episodes.c.id == episode.episode_id)
+        ).first()
+        if not existing:
+            repo.db.execute(
+                insert(l.episodes).values(
+                    id=episode.episode_id, payload=episode.model_dump(mode="json")
+                )
+            )
+            for source_id in source_ids:
+                repo.db.execute(
+                    insert(l.episode_memories).values(
+                        episode_id=episode.episode_id, memory_id=source_id
+                    )
+                )
+            from memory.reflection.engine import feature_projection
+
+            feature_projection(repo, episode)
+        return episode
+
+    @require_scope("write")
+    def record(self, ctx, body):
+        with self.memory.engine.begin() as connection:
+            repo = SQLMemoryRepository(connection, ctx)
+            repo.lock_namespace()
+            repo.session()
+            return self._save(repo, body)
+
+    @require_scope("read")
+    def get(self, ctx, episode_id):
+        with self.memory.engine.begin() as connection:
+            repo = SQLMemoryRepository(connection, ctx)
+            repo.get(episode_id)
+            row = connection.execute(
+                select(l.episodes.c.payload).where(l.episodes.c.id == episode_id)
+            ).first()
+            if not row:
+                raise NotFound("episode not found")
+            return Episode.model_validate(row.payload)
+
+    @require_scope("read")
+    def search(self, ctx, request):
+        hits = self.memory.search(ctx, request)
+        episodes = []
+        for hit in hits:
+            if hit.memory.type.value == "EPISODIC":
+                episodes.append(
+                    {
+                        "episode": self.get(ctx, hit.memory.memory_id).model_dump(
+                            mode="json"
+                        ),
+                        "relevance": hit.relevance,
+                    }
+                )
+        return episodes
+
+    @require_scope("write")
+    def segment(self, ctx, memory_ids, gap_minutes=30):
+        memories = sorted(
+            [self.memory.get(ctx, item) for item in memory_ids],
+            key=lambda m: m.observed_at,
+        )
+        groups = []
+        for memory in memories:
+            if (
+                not groups
+                or memory.source_session_id != groups[-1][-1].source_session_id
+                or (memory.observed_at - groups[-1][-1].observed_at).total_seconds()
+                > gap_minutes * 60
+            ):
+                groups.append([])
+            groups[-1].append(memory)
+        result = []
+        for group in groups:
+            result.append(
+                self.record(
+                    ctx,
+                    EpisodeInput(
+                        title=group[0].canonical_text[:500],
+                        trigger="interaction segment",
+                        goal="retain completed interaction context",
+                        linked_memory_ids=[m.memory_id for m in group],
+                        start_time=group[0].observed_at,
+                        end_time=group[-1].observed_at,
+                    ),
+                )
+            )
+        return result

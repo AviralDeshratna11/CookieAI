@@ -1,0 +1,2 @@
+VERSION episode_builder 1
+Segment supplied observations into bounded events. Preserve trigger, actors, goals, actions, tools, outcomes, errors and resolutions. Every event must cite actual atomic source IDs. Keep observed failure and success contextual. Do not invent missing steps or infer universal rules. Return strict Episode schema JSON.

@@ -1,0 +1,2 @@
+VERSION entity_resolver 1
+Propose entity type, canonical name, aliases, candidate identity IDs and confidence from supplied evidence only. Resolve pronouns only with unambiguous context. Similarity is not identity. Preserve ambiguous entities and propose POSSIBLY_SAME_AS rather than permanent merge below the configured threshold. Never expand namespace or access permissions. Return strict JSON.

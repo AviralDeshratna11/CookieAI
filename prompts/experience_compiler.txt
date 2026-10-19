@@ -1,0 +1,2 @@
+VERSION experience_compiler 1
+Compare structurally similar real episodes. Preserve attempted, unsuccessful and successful actions, conditions, exceptions and all source episode IDs. Distinguish a single experience from a repeated pattern. Missing structural dimensions reduce confidence. Never claim universal effectiveness or causation from similarity. Return strict Experience schema JSON.

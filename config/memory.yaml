@@ -1,0 +1,29 @@
+# Administrator-managed file. Each key supports MEMORY_<KEY> environment overrides
+# and authenticated namespace policy rows. Safety thresholds cannot expand ACLs.
+memory:
+  extraction_threshold: 0.55
+  rolling_messages: 10
+  max_memories_per_turn: 12
+  minimum_candidates: 60
+  overfetch_multiplier: 4
+  max_memory_tokens: 8000
+  graph_max_hops: 3
+  graph_hop_decay: 0.55
+  graph_minimum_activation: 0.10
+  minimum_support: 3
+  serendipity_confidence: 0.65
+  serendipity_novelty: 0.45
+  serendipity_utility: 0.40
+  half_life_days: 180
+  scoring_weights:
+    semantic: 0.27
+    keyword: 0.11
+    entity: 0.11
+    graph: 0.11
+    temporal: 0.07
+    importance: 0.08
+    recency: 0.04
+    goal: 0.08
+    episode: 0.05
+    procedure: 0.04
+    associative: 0.04

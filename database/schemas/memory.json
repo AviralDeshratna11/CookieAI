@@ -1,0 +1,557 @@
+{
+  "$defs": {
+    "Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "uri": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Uri",
+          "type": "string"
+        },
+        "modality": {
+          "enum": [
+            "text",
+            "image",
+            "audio",
+            "video",
+            "document",
+            "screen",
+            "tool",
+            "record"
+          ],
+          "title": "Modality",
+          "type": "string"
+        },
+        "media_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Media Type"
+        },
+        "checksum": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checksum"
+        }
+      },
+      "required": [
+        "uri",
+        "modality"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "EpistemicType": {
+      "enum": [
+        "OBSERVED",
+        "USER_STATED",
+        "VERIFIED",
+        "INFERRED",
+        "CORRELATED",
+        "HYPOTHESIZED",
+        "PREDICTED"
+      ],
+      "title": "EpistemicType",
+      "type": "string"
+    },
+    "MemoryType": {
+      "enum": [
+        "EPISODIC",
+        "SEMANTIC",
+        "PREFERENCE",
+        "AUTOBIOGRAPHICAL",
+        "PROCEDURAL",
+        "SOCIAL",
+        "GOAL",
+        "TASK",
+        "CONSTRAINT",
+        "OBSERVATION",
+        "CORRECTION",
+        "HYPOTHESIS",
+        "INSIGHT",
+        "PREDICTION",
+        "CONTEXT"
+      ],
+      "title": "MemoryType",
+      "type": "string"
+    },
+    "Status": {
+      "enum": [
+        "ACTIVE",
+        "DORMANT",
+        "DISPUTED",
+        "SUPERSEDED",
+        "ARCHIVED",
+        "EXPIRED",
+        "DELETED"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 16000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "type": {
+      "$ref": "#/$defs/MemoryType",
+      "default": "SEMANTIC"
+    },
+    "epistemic_type": {
+      "$ref": "#/$defs/EpistemicType",
+      "default": "USER_STATED"
+    },
+    "subject": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Subject"
+    },
+    "predicate": {
+      "anyOf": [
+        {
+          "maxLength": 500,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Predicate"
+    },
+    "object": {
+      "anyOf": [
+        {
+          "maxLength": 4000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Object"
+    },
+    "source_type": {
+      "default": "MESSAGE",
+      "enum": [
+        "MESSAGE",
+        "DOCUMENT",
+        "TOOL",
+        "OBSERVATION",
+        "IMPORT",
+        "DERIVED"
+      ],
+      "title": "Source Type",
+      "type": "string"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Id"
+    },
+    "source_turn_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Turn Id"
+    },
+    "provenance_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "entities": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Entities",
+      "type": "array"
+    },
+    "topics": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Topics",
+      "type": "array"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Tags",
+      "type": "array"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "maxItems": 20,
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "event_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event At"
+    },
+    "valid_from": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valid From"
+    },
+    "valid_until": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valid Until"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expires At"
+    },
+    "truth_confidence": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Truth Confidence",
+      "type": "number"
+    },
+    "extraction_confidence": {
+      "default": 1.0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Extraction Confidence",
+      "type": "number"
+    },
+    "importance": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Importance",
+      "type": "number"
+    },
+    "salience": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Salience",
+      "type": "number"
+    },
+    "novelty": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Novelty",
+      "type": "number"
+    },
+    "future_utility": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Future Utility",
+      "type": "number"
+    },
+    "specificity": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Specificity",
+      "type": "number"
+    },
+    "persistence": {
+      "default": 0.5,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Persistence",
+      "type": "number"
+    },
+    "privacy_class": {
+      "default": "NORMAL",
+      "enum": [
+        "PUBLIC",
+        "NORMAL",
+        "PRIVATE",
+        "HIGHLY_PRIVATE"
+      ],
+      "title": "Privacy Class",
+      "type": "string"
+    },
+    "allowed_agent_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Allowed Agent Ids",
+      "type": "array"
+    },
+    "allowed_project_ids": {
+      "items": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Allowed Project Ids",
+      "type": "array"
+    },
+    "memory_id": {
+      "format": "uuid",
+      "title": "Memory Id",
+      "type": "string"
+    },
+    "namespace_id": {
+      "format": "uuid",
+      "title": "Namespace Id",
+      "type": "string"
+    },
+    "owner_id": {
+      "format": "uuid",
+      "title": "Owner Id",
+      "type": "string"
+    },
+    "owner_type": {
+      "default": "USER",
+      "enum": [
+        "USER",
+        "AGENT",
+        "PROJECT",
+        "ORGANIZATION",
+        "SHARED"
+      ],
+      "title": "Owner Type",
+      "type": "string"
+    },
+    "canonical_text": {
+      "title": "Canonical Text",
+      "type": "string"
+    },
+    "content_hash": {
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "semantic_hash": {
+      "title": "Semantic Hash",
+      "type": "string"
+    },
+    "embedding_model": {
+      "title": "Embedding Model",
+      "type": "string"
+    },
+    "embedding_version": {
+      "title": "Embedding Version",
+      "type": "string"
+    },
+    "source_agent_id": {
+      "format": "uuid",
+      "title": "Source Agent Id",
+      "type": "string"
+    },
+    "source_session_id": {
+      "format": "uuid",
+      "title": "Source Session Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "title": "Updated At",
+      "type": "string"
+    },
+    "last_accessed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Last Accessed At"
+    },
+    "memory_strength": {
+      "default": 1.0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Memory Strength",
+      "type": "number"
+    },
+    "decay_rate": {
+      "default": 0.0038508,
+      "minimum": 0,
+      "title": "Decay Rate",
+      "type": "number"
+    },
+    "retrieval_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Retrieval Count",
+      "type": "integer"
+    },
+    "successful_use_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Successful Use Count",
+      "type": "integer"
+    },
+    "user_confirmation_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "User Confirmation Count",
+      "type": "integer"
+    },
+    "independent_evidence_count": {
+      "default": 1,
+      "minimum": 0,
+      "title": "Independent Evidence Count",
+      "type": "integer"
+    },
+    "contradiction_count": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Contradiction Count",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/$defs/Status",
+      "default": "ACTIVE"
+    },
+    "supersedes_memory_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Memory Id"
+    },
+    "superseded_by_memory_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Superseded By Memory Id"
+    },
+    "revision": {
+      "default": 1,
+      "minimum": 1,
+      "title": "Revision",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "text",
+    "namespace_id",
+    "owner_id",
+    "canonical_text",
+    "content_hash",
+    "semantic_hash",
+    "embedding_model",
+    "embedding_version",
+    "source_agent_id",
+    "source_session_id"
+  ],
+  "title": "Memory",
+  "type": "object"
+}

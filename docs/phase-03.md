@@ -1,0 +1,7 @@
+# Phase 3 temporal mutation
+
+Relative dates normalize against the interaction timestamp and retain interval precision; northern summer is explicitly identified as a locale assumption. Automatic structured subject/predicate/object changes become temporal supersession when an explicit later validity boundary exists, otherwise unresolved contradictions. Explicit correction and supersession preserve old text, versions and validity, with bidirectional replacement IDs. All ten mutation classes have validated service contracts; reinforcement never inflates truth confidence. Source changes mark provenance descendants disputed.
+
+No DDL is required: the foundation's validity, lifecycle, version, provenance and mutation fields carry this phase. REST adds explicit mutation and correction operations. Tests cover Jaipur-to-Bengaluru history, ambiguous database-choice conflict, stale corrections, reinforcement and relative dates. Example: `service.mutate(ctx, MutationRequest(candidate=..., operation="CORRECTION", target_id=..., expected_revision=1))`.
+
+Limits: automatic conflict classification requires explicit structured subject/predicate/object, rather than guessing contradictions from arbitrary prose. Season normalization currently uses a documented northern calendar. Complex contradiction proposals may be supplied by a configured reasoning model and still pass the same deterministic mutation rules. Stored contradictory memories remain labeled disputed in recall.

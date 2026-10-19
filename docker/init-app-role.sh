@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --set=app_password="$MEMORY_APP_PASSWORD" <<'SQL'
+CREATE ROLE memory_app LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD :'app_password';
+GRANT USAGE ON SCHEMA public TO memory_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO memory_app;
+SQL

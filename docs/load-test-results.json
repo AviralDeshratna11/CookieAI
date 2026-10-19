@@ -1,0 +1,8 @@
+{
+  "requests": 20,
+  "concurrency": 4,
+  "elapsed_seconds": 0.18347720000019763,
+  "requests_per_second": 109.0053696043893,
+  "p95_ms": 54.11969999840949,
+  "errors": 0
+}

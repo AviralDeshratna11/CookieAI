@@ -1,0 +1,5 @@
+# Authorization and operational roles
+
+Accepted. Bearer credentials bind user, agent and namespace; grants and object ACLs are rechecked inside domain operations, including background execution. PostgreSQL RLS restricts tenant rows and child projections through transaction-local namespace context. A non-superuser application role is required: superuser tests alone cannot demonstrate RLS. The test suite creates a temporary restricted role and proves default-deny, scoped access and cross-namespace exclusion. Compose initializes a separate `memory_app` role; migrations/bootstrap retain an administrative connection.
+
+Durable jobs use PostgreSQL leases and bounded retries; Redis streams distribute content-free outbox events at least once. Consumers deduplicate by event/job key and reclaim abandoned pending events. Working-state Redis data contains references only, with access and deletion checked again during resolution. Per-process rate limits protect local deployments; multi-replica deployments need a distributed ingress rate limiter. TLS, encrypted volumes/backups and operational secret rotation are deployment responsibilities.

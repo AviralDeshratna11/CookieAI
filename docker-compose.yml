@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: memory
+      POSTGRES_USER: memory
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-memory-local-only}
+      MEMORY_APP_PASSWORD: ${MEMORY_APP_PASSWORD:-memory-app-local-only}
+    ports:
+      - "127.0.0.1:${MEMORY_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - memory_postgres:/var/lib/postgresql/data
+      - ./docker/init-app-role.sh:/docker-entrypoint-initdb.d/001-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U memory -d memory"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - memory_redis:/data
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      MEMORY_DATABASE_URL: postgresql+psycopg://memory:${POSTGRES_PASSWORD:-memory-local-only}@postgres:5432/memory
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      MEMORY_DATABASE_URL: postgresql+psycopg://memory_app:${MEMORY_APP_PASSWORD:-memory-app-local-only}@postgres:5432/memory
+      MEMORY_CREDENTIALS_FILE: /run/secrets/credentials
+      MEMORY_EMBEDDING_BACKEND: ${MEMORY_EMBEDDING_BACKEND:-hash-test}
+      MEMORY_EMBEDDING_MODEL: ${MEMORY_EMBEDDING_MODEL:-hash-test}
+      MEMORY_EMBEDDING_DIMENSIONS: ${MEMORY_EMBEDDING_DIMENSIONS:-64}
+      MEMORY_PROVIDER_BASE_URL: ${MEMORY_PROVIDER_BASE_URL:-http://host.docker.internal:11434/v1}
+      MEMORY_EXTRACTION_MODEL: ${MEMORY_EXTRACTION_MODEL:-qwen2.5:7b}
+      MEMORY_EXTRACTION_RESPONSE_FORMAT: ${MEMORY_EXTRACTION_RESPONSE_FORMAT:-json_schema}
+      MEMORY_REQUEST_TIMEOUT_SECONDS: ${MEMORY_REQUEST_TIMEOUT_SECONDS:-60}
+    secrets: [credentials]
+    ports:
+      - "127.0.0.1:${MEMORY_API_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+secrets:
+  credentials:
+    file: ./config/credentials.json
+volumes:
+  memory_postgres:
+  memory_redis:

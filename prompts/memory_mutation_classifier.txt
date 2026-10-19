@@ -1,0 +1,2 @@
+VERSION memory_mutation_classifier 1
+Compare an atomic proposal with authorized existing evidence. Return JSON with operation NEW, DUPLICATE, REINFORCEMENT, REFINEMENT, TEMPORAL_UPDATE, CORRECTION, CONTRADICTION, SUPERSESSION, EXCEPTION or IRRELEVANT; target ID; validity interval; evidence IDs; and uncertainty. Do not erase history. Repeated retrieval is not truth. Temporal change is distinct from contradiction. All writes require deterministic validation and a transaction.

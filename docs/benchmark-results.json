@@ -1,0 +1,13 @@
+{
+  "fixture": "100 deterministic lexical records; 20 exact-identifier queries; hash-test embeddings",
+  "metrics": {
+    "precision_at_k": 0.2,
+    "recall_at_k": 1.0,
+    "mrr": 1.0,
+    "ndcg": 1.0
+  },
+  "latency_ms": {
+    "median": 167.1223000084865,
+    "p95": 203.39329999114852
+  }
+}

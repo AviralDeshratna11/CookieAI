@@ -1,0 +1,2 @@
+VERSION procedure_compiler 1
+Propose a conditional procedure from repeated evidence or attributed explicit confirmation. Retain ordered steps, tools, preconditions, expected outcomes, known failure modes, recovery and source IDs. One success cannot establish a reliable general rule. Do not execute any step. Return strict Procedure schema JSON.

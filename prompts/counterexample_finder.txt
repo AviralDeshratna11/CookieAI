@@ -1,0 +1,2 @@
+VERSION counterexample_finder 1
+Actively search authorized evidence that contradicts the candidate. Distinguish absence of support from actual contradictory observations. Return real counterexample IDs, applicability differences and uncertainty. Do not invent negative evidence or assume missing data confirms a hypothesis. Return strict JSON.
