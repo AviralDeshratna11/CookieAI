@@ -40,17 +40,28 @@ class HashEmbedding:
 class Provider:
     def __init__(self, settings: Settings):
         self.settings = settings
+        self.base_url = settings.provider_base_url
+        self.api_key = settings.provider_api_key
 
     def post(self, endpoint, payload):
+        if (
+            endpoint == "/chat/completions"
+            and self.settings.provider_enable_thinking is not None
+        ):
+            payload = {
+                **payload,
+                "chat_template_kwargs": {
+                    "enable_thinking": self.settings.provider_enable_thinking
+                },
+            }
         # Streaming response consumption enforces a bound before parsing JSON.
         with httpx.Client(timeout=self.settings.request_timeout_seconds) as client:
             with client.stream(
                 "POST",
-                self.settings.provider_base_url.rstrip("/") + endpoint,
-                headers={
-                    "Authorization": "Bearer "
-                    + self.settings.provider_api_key.get_secret_value()
-                },
+                self.base_url.rstrip("/") + endpoint,
+                headers={"Authorization": "Bearer " + self.api_key.get_secret_value()}
+                if self.api_key and self.api_key.get_secret_value()
+                else {},
                 json=payload,
             ) as response:
                 response.raise_for_status()
@@ -65,13 +76,49 @@ class Provider:
 class CompatibleEmbedding(Provider):
     def __init__(self, settings):
         super().__init__(settings)
+        if settings.embedding_provider_base_url:
+            self.base_url = settings.embedding_provider_base_url
+            # A separate embedding host must never receive the LLM credential
+            # implicitly. Its own key is optional for unauthenticated services.
+            self.api_key = settings.embedding_provider_api_key
+        elif settings.embedding_provider_api_key:
+            self.api_key = settings.embedding_provider_api_key
         self.model_id = settings.embedding_model
         self.version = settings.embedding_version
         self.dimensions = settings.embedding_dimensions
 
     def embed(self, text):
-        result = self.post("/embeddings", {"model": self.model_id, "input": text})
+        return self._embed(self.settings.embedding_document_prefix + text, "passage")
+
+    def embed_query(self, text):
+        return self._embed(self.settings.embedding_query_prefix + text, "query")
+
+    def _embed(self, text, input_type="passage"):
+        payload = {"model": self.model_id, "input": text}
+        if self.settings.embedding_input_type_mode == "nvidia":
+            payload.update(input_type=input_type, truncate="NONE")
+        result = self.post("/embeddings", payload)
         return validate_vector(result["data"][0]["embedding"], self.dimensions)
+
+    def embed_many(self, texts):
+        """Bounded batches for offline projection migration, in input order."""
+        if not texts:
+            return []
+        payload = {
+            "model": self.model_id,
+            "input": [self.settings.embedding_document_prefix + item for item in texts],
+        }
+        if self.settings.embedding_input_type_mode == "nvidia":
+            payload.update(input_type="passage", truncate="NONE")
+        rows = self.post("/embeddings", payload)["data"]
+        if len(rows) != len(texts) or sorted(row["index"] for row in rows) != list(
+            range(len(texts))
+        ):
+            raise ValueError("embedding response did not preserve input identities")
+        return [
+            validate_vector(row["embedding"], self.dimensions)
+            for row in sorted(rows, key=lambda row: row["index"])
+        ]
 
 
 class CompatibleExtractor(Provider):

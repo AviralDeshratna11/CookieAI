@@ -1,0 +1,184 @@
+{
+  "created_at": "2026-10-19T17:51:57.765917+00:00",
+  "tables": {
+    "background_jobs": {
+      "rows": 190,
+      "sha256": "5209bd98b794e8674426d4a56c646d0fee38d546021e4def1ad4ff4e334e85d3"
+    },
+    "deletion_tombstones": {
+      "rows": 1,
+      "sha256": "35be5646b33d9a92f5955995875b6ee918caa10fa8e918f891ab169281087711"
+    },
+    "ingestion_receipts": {
+      "rows": 4,
+      "sha256": "283d6257ecdd2f1f116df28038a16c7278a7ec9ce3c5e789f0a4d7f37e6a4263"
+    },
+    "memory_access_events": {
+      "rows": 455,
+      "sha256": "98a3032e81edd8145348d49c30e1551cddaaaf00fd3b39b7c15cd0c5e0fd33a3"
+    },
+    "memory_mutations": {
+      "rows": 130,
+      "sha256": "ade5395d1c38ef31cfbf7411c2b9df0f7ed5bae204ff4bfb08f730531dadb55a"
+    },
+    "outbox_events": {
+      "rows": 130,
+      "sha256": "ac6b797cb264cdd40ea1b1ba9c602e24cb3b3cb934e9cafdd9b48904379a57b1"
+    },
+    "reflection_jobs": {
+      "rows": 38,
+      "sha256": "d292a4058f2a31cc17ce77fb9b952c57bfb32cf47854682d29237862e7791e3a"
+    },
+    "retrieval_events": {
+      "rows": 173,
+      "sha256": "b93ce1d26fbd07116fb0b3298a46e445b6bf95e9f7e11d353736c15ebf638e89"
+    },
+    "users": {
+      "rows": 5,
+      "sha256": "5d341163591c40e6b4b0dc4c931fded836e0fc7cae61f094225cea0265ca146a"
+    },
+    "agents": {
+      "rows": 6,
+      "sha256": "48f48aeabce5e2692819f44be0510263a5a89e36e261e654722958f0e7fe80b2"
+    },
+    "namespaces": {
+      "rows": 5,
+      "sha256": "ef15023165adb8e39e7e3ecc262fa3b007825ea382039c2ee186a9a0b19c01dd"
+    },
+    "entities": {
+      "rows": 6,
+      "sha256": "1935111ba1ba1a639b969879911b9a99ea26ed100b1e3690fd0cbe93b1318057"
+    },
+    "graph_nodes": {
+      "rows": 131,
+      "sha256": "048ce96b2d10b55b5a81e3106f30b294ee1dcc4497f02ff59dbf1c97c833dd34"
+    },
+    "memories": {
+      "rows": 125,
+      "sha256": "5e02b8aa22e321dda86a8527e8a3d6371bc0d6597eebb70a88c5201908f94612"
+    },
+    "namespace_grants": {
+      "rows": 6,
+      "sha256": "af2d67d3de9625374b40ae2a8bb2100ce1cd1d884d24d922ff909205f1b78436"
+    },
+    "raw_sources": {
+      "rows": 75,
+      "sha256": "8a31f566f1265722b3d6b13269bd2492ce189bada2acfb7e2e13ea302e9a6551"
+    },
+    "sessions": {
+      "rows": 46,
+      "sha256": "ee8cd2fbf3e8a0a0166d0ce915f200b16402d92b9e2dd6219d4c40782373c613"
+    },
+    "tenant_policies": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "entity_aliases": {
+      "rows": 6,
+      "sha256": "a1a37149b8ed9f588b802b64e56fb84ac422c828a8f1a11a4e68fdf0c7f642b1"
+    },
+    "entity_embeddings": {
+      "rows": 6,
+      "sha256": "ffc36fd818cad80ad928931f0a6b586b3591e82a1782295e62737d80912571ae"
+    },
+    "episodes": {
+      "rows": 25,
+      "sha256": "ffc89d9ec32e5dbf81ef558914162e030950c55efd75de10853b9b3e7dd7f90b"
+    },
+    "experiences": {
+      "rows": 25,
+      "sha256": "644cd1ddda5dcefa4db09068774a5ebee9bcacedf904e8f0563dbb66769bb451"
+    },
+    "goals": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "graph_edges": {
+      "rows": 157,
+      "sha256": "8413e7434bef9175c7cfb7890262d72a33d41c9d10302334e44e2f0551375d58"
+    },
+    "insights": {
+      "rows": 1,
+      "sha256": "68cfe69ff183fb9da22c56256000abad993aa84d6b698795fc56ea52ed79f40d"
+    },
+    "memory_clusters": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "memory_embeddings": {
+      "rows": 125,
+      "sha256": "9da86b88090493ab0778074a56afa4cf47a28dafeb9f788afcf4026de9e641b4"
+    },
+    "memory_entities": {
+      "rows": 56,
+      "sha256": "682c3584285ca259d26b7218a03612126e9d084586baadd4911b33694fe3d6f6"
+    },
+    "memory_lexical": {
+      "rows": 125,
+      "sha256": "1564f7ffefa7e512320494b0a797f63e05a2176828e3b730922f262d7c75eff2"
+    },
+    "memory_versions": {
+      "rows": 128,
+      "sha256": "c5b0226db4a36faf4f6123ebc6ce537c09b263796e4ebb9514f44239c3418a8c"
+    },
+    "messages": {
+      "rows": 3,
+      "sha256": "e7b1ad0e4491c71710618b5173cbb9eca8731e206d9e33771979d1c409313759"
+    },
+    "open_loops": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "procedures": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "prospective_memories": {
+      "rows": 3,
+      "sha256": "22a805990bdea6c9aaa3389b5e2f58abdefc37e137a8e9c8e9a53188ef8f8558"
+    },
+    "provenance_edges": {
+      "rows": 175,
+      "sha256": "9581b1d85b9021c41df3902be04783a9c22426163a1eb60832bdd4cf87752625"
+    },
+    "cluster_members": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "episode_features": {
+      "rows": 25,
+      "sha256": "429b6f0977e1686c409f947f573bf3b82fa3e4f28b5635d3aa1a2875cbe26aa7"
+    },
+    "episode_memories": {
+      "rows": 50,
+      "sha256": "6b9044f27b7f37ffa111153203f49d3da8f3954108d26406f137edd4a7c0712a"
+    },
+    "experience_episodes": {
+      "rows": 25,
+      "sha256": "a1ac9d13aa9313fab5426f824a0b33befbb7c84889dbc96f40f66ab25c88f90c"
+    },
+    "goal_relations": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "graph_edge_evidence": {
+      "rows": 157,
+      "sha256": "c427386a70204ea5b0e959323a0835e96c7ba522f888403cb5f110eb709dba1b"
+    },
+    "insight_counterexamples": {
+      "rows": 5,
+      "sha256": "cbdaffe1ab42dea7253474d9d1221be13b80304cc575b5f1cf8c156cb2bf10d1"
+    },
+    "insight_evidence": {
+      "rows": 20,
+      "sha256": "a076f2965fe1ecfd983735731d48456d2b4343f61f8cf7aa6d92d71807f574c0"
+    },
+    "procedure_experiences": {
+      "rows": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "revision": "0013",
+  "verified_all_table_fingerprints": true,
+  "refreshed_staged_snapshot": true
+}

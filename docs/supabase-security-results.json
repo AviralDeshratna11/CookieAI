@@ -1,0 +1,17 @@
+{
+  "client_tls": true,
+  "unscoped_memory_count": 0,
+  "authorized_namespace_memory_count": 123,
+  "memory_vector_dimensions": [
+    768
+  ],
+  "entity_vector_dimensions": [
+    768
+  ],
+  "unrelated_namespace_memory_count": 0,
+  "api_roles_with_table_select": 0,
+  "total_memories": 125,
+  "total_jobs": 191,
+  "completed_jobs_created_after_cutover": 1,
+  "runtime_status": "API and worker use Supabase session pooler; Redis and Ollama remain local"
+}

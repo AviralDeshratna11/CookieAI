@@ -18,6 +18,37 @@ from models.providers import HashEmbedding
 pytestmark = pytest.mark.postgres
 
 
+def test_external_migration_transaction_rolls_back_schema_and_data():
+    url = os.environ.get("MEMORY_TEST_DATABASE_URL")
+    if not url:
+        pytest.skip("set MEMORY_TEST_DATABASE_URL for the PostgreSQL acceptance gate")
+    engine = create_engine(url)
+    schema = "test_atomic_" + uuid4().hex
+    try:
+        with engine.begin() as db:
+            db.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        with engine.connect() as db:
+            transaction = db.begin()
+            db.execute(text(f'CREATE SCHEMA "{schema}"'))
+            db.execute(text(f'SET LOCAL search_path TO "{schema}",public'))
+            cfg = Config("alembic.ini")
+            cfg.attributes["connection"] = db
+            command.upgrade(cfg, "head")
+            db.execute(text("INSERT INTO users(id) VALUES (:id)"), {"id": uuid4()})
+            assert db.execute(text("SELECT count(*) FROM users")).scalar_one() == 1
+            transaction.rollback()
+        with engine.connect() as db:
+            assert (
+                db.execute(
+                    text("SELECT 1 FROM pg_namespace WHERE nspname=:schema"),
+                    {"schema": schema},
+                ).scalar()
+                is None
+            )
+    finally:
+        engine.dispose()
+
+
 @pytest.fixture
 def postgres(ctx, monkeypatch):
     url = os.environ.get("MEMORY_TEST_DATABASE_URL")
@@ -82,13 +113,38 @@ def test_real_pgvector_migration_transactions_and_concurrent_dedup(postgres, ctx
         )
         assert (
             db.execute(text("SELECT version_num FROM alembic_version")).scalar()
-            == "0012"
+            == "0014"
         )
     service.delete(ctx, memory_ids[0])
     assert (
         service.search(ctx, SearchRequest(query="Alpha PostgreSQL", score_threshold=0))
         == []
     )
+
+
+def test_real_2048_dimension_candidate_search(postgres, ctx):
+    service = MemoryService(
+        postgres,
+        HashEmbedding(2048),
+        RecordingExtractor(),
+        Settings(_env_file=None, embedding_dimensions=2048),
+    )
+    memory = service.create(
+        ctx, MemoryCreate(text="Cloud semantic projection uses PostgreSQL")
+    )
+    hits = service.search(
+        ctx, SearchRequest(query="Cloud semantic projection", score_threshold=0)
+    )
+    assert hits[0].memory.memory_id == memory.memory_id
+    with postgres.connect() as db:
+        assert (
+            "halfvec"
+            in db.execute(
+                text(
+                    "SELECT indexdef FROM pg_indexes WHERE schemaname=current_schema() AND indexname='ix_memory_vectors_2048_hnsw'"
+                )
+            ).scalar_one()
+        )
 
 
 def test_real_postgres_model_failure_rolls_back(postgres, ctx):

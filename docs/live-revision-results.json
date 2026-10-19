@@ -1,0 +1,28 @@
+{
+  "kind": "live synthetic counterevidence through actual persistent worker",
+  "finding_id": "d108b1bd-6442-4598-ac96-78c364cdfa5d",
+  "confidence_before": 0.7407407407407407,
+  "confidence_after": 0.7142857142857143,
+  "counterexamples_before": 4,
+  "counterexamples_after": 5,
+  "status_after": "ACTIVE",
+  "inferred_opportunities": [
+    {
+      "prospective_id": "239c81ba-68dc-47ba-9a2c-0a6fbc7b8a47",
+      "trigger_type": "CONTEXT",
+      "trigger": {
+        "value": "SyntheticProbe-d04b59b9"
+      },
+      "action_or_memory": "When discussing SyntheticProbe-d04b59b9, review the conditional association: Observed association: {\"parameters\":{\"configuration\":\"limited-timeout\"},\"tool\":\"SyntheticProbe-d04b59b9\"} had failures in 20 episode(s), with 5 successful counterexample(s). This is correlation, not causation.",
+      "expires_at": null,
+      "status": "WAITING",
+      "origin": "INFERRED_OPPORTUNITY",
+      "epistemic_type": "INFERRED",
+      "truth_confidence": 0.7142857142857143,
+      "provenance_ids": [
+        "d108b1bd-6442-4598-ac96-78c364cdfa5d"
+      ],
+      "requires_contextual_review": true
+    }
+  ]
+}

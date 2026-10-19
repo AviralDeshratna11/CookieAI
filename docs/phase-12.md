@@ -2,7 +2,7 @@
 
 Migrations 0010 and 0011 add durable jobs, retrieval/access events, tenant policies and forced PostgreSQL RLS. A non-superuser test proves default-deny and namespace isolation for memory and vector tables. Domain mutations enforce their required scopes. Derived records and cross-agent transfer preserve evidence permissions.
 
-Migration 0012 stores raw evidence separately from the bounded rolling context. Erasure clears source-session raw content, and mutation-time lease checks prevent canceled jobs from restoring deleted input. The final verification suite has 80 passing tests on the host and in Python 3.12 Docker.
+Migration 0012 stores raw evidence separately from the bounded rolling context. Erasure clears source-session raw content, and mutation-time lease checks prevent canceled jobs from restoring deleted input. The completion pass adds migration 0013, real embeddings, persistent discovery workers and expanded acceptance checks. The current suite has 92 passing tests on the host and in Python 3.12 Docker; see verification.md for exact scope.
 
 Workers use SQL job leases, idempotency, bounded retry/backoff and dead jobs. Redis streams publish content-free outbox events; consumer groups acknowledge and reclaim events; dispatch schedules graph/experience/procedure projections. Execution rechecks current grants. Periodic maintenance covers reflection, consolidation, decay and DREAMER; session completion queues episodes. Working-state Redis contains IDs only. Deletion purges pending raw jobs and traverses provenance, clearing versions, vectors, graph evidence, orphan entities and summaries. Export/user deletion explicitly use the authenticated namespace.
 

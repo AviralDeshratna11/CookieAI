@@ -1,0 +1,22 @@
+{
+  "kind": "synthetic recurring-choice evaluation using real persistent worker and model calls",
+  "marker": "SyntheticLodging-8d040665",
+  "job_id": "07afd069-41ce-4d4e-82a2-697ea078cb5d",
+  "source_memory_ids": [
+    "51fb3f29-87cc-4f9e-96ba-990ffbee861c",
+    "e9c17ef9-1e94-418e-910a-458844389397",
+    "027ccdfb-acaa-4d96-adce-602ed5a44bbb",
+    "bb2256c8-8e83-42a1-b2d8-01ad6de4c079",
+    "0113fa9d-4be9-4a8f-becc-027fb4e8f8dd",
+    "e159a9e4-52ec-45ba-be6f-1a2568e844d0",
+    "703731e2-ebdf-4ae1-a0cf-d5266d760102",
+    "3082d036-b600-45a9-b37d-0bb0728414fe",
+    "b4b2d2f5-d6f8-4723-b123-625edd27e25b",
+    "cf24651c-a871-473f-8fd4-1aed851fe8c9",
+    "d2837d8d-6e7a-4248-9e19-f7924f2526e5",
+    "76942906-9ee0-4ddc-bdd7-273046fa82c6"
+  ],
+  "job_status": "DONE",
+  "findings": [],
+  "found_pattern": false
+}

@@ -1,5 +1,5 @@
 from datetime import datetime
-from uuid import UUID
+from uuid import NAMESPACE_URL, UUID, uuid5
 
 from sqlalchemy import insert, select
 
@@ -23,6 +23,7 @@ class ToolAttempt(StrictModel):
 
 
 class EpisodeInput(StrictModel):
+    event_id: UUID | None = None
     title: str = Field(min_length=1, max_length=500)
     trigger: str = Field(min_length=1, max_length=1000)
     goal: str = Field(min_length=1, max_length=1000)
@@ -47,6 +48,35 @@ class EpisodeService:
         self.memory = memory_service
 
     def _save(self, repo, body):
+        if body.event_id:
+            from database import tables as foundation
+            from memory.security.auth import Conflict
+
+            matches = repo.db.execute(
+                select(l.episodes.c.payload)
+                .join(foundation.memories, foundation.memories.c.id == l.episodes.c.id)
+                .where(
+                    foundation.memories.c.namespace_id == repo.ctx.namespace_id,
+                    foundation.memories.c.payload["source_id"].as_string()
+                    == str(body.event_id),
+                )
+            ).scalars()
+            for payload in matches:
+                previous = Episode.model_validate(payload)
+                repo.get(previous.episode_id)
+                excluded = {
+                    "start_time",
+                    "end_time",
+                    "episode_id",
+                    "confidence",
+                    "created_at",
+                    "linked_memory_ids",
+                }
+                if previous.model_dump(exclude=excluded) != body.model_dump(
+                    exclude=excluded
+                ):
+                    raise Conflict("event identity was reused with different content")
+                return previous
         for value in (body.start_time, body.end_time):
             MemoryCreate.aware_time(value)
         if body.end_time < body.start_time:
@@ -119,6 +149,7 @@ class EpisodeService:
             MemoryCreate(
                 text=summary,
                 type="EPISODIC",
+                source_id=body.event_id,
                 epistemic_type="INFERRED",
                 source_type="DERIVED",
                 provenance_ids=source_ids,
@@ -198,12 +229,18 @@ class EpisodeService:
             key=lambda m: m.observed_at,
         )
         groups = []
+
+        def task(item):
+            return tuple(tag for tag in item.tags if tag.startswith("task:"))
+
         for memory in memories:
             if (
                 not groups
                 or memory.source_session_id != groups[-1][-1].source_session_id
                 or (memory.observed_at - groups[-1][-1].observed_at).total_seconds()
                 > gap_minutes * 60
+                or "episode-boundary" in memory.tags
+                or task(memory) != task(groups[-1][-1])
             ):
                 groups.append([])
             groups[-1].append(memory)
@@ -213,6 +250,11 @@ class EpisodeService:
                 self.record(
                     ctx,
                     EpisodeInput(
+                        event_id=uuid5(
+                            NAMESPACE_URL,
+                            "memory-segment:"
+                            + ":".join(str(m.memory_id) for m in group),
+                        ),
                         title=group[0].canonical_text[:500],
                         trigger="interaction segment",
                         goal="retain completed interaction context",

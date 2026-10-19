@@ -79,6 +79,10 @@ class JobQueue:
                 .order_by(o.jobs.c.priority, o.jobs.c.created_at)
                 .limit(1)
             )
+            if self.context:
+                statement = statement.where(
+                    o.jobs.c.namespace_id == self.context.namespace_id
+                )
             if db.dialect.name == "postgresql":
                 statement = statement.with_for_update(skip_locked=True)
             row = db.execute(statement).mappings().first()
@@ -124,3 +128,25 @@ class JobQueue:
                     available_at=utcnow() + timedelta(seconds=min(300, 2**attempts)),
                 )
             )
+
+    def renew(self, job):
+        """Renew only a currently owned lease; a canceled/reclaimed job stays canceled."""
+        with self.engine.begin() as db:
+            if db.dialect.name == "postgresql":
+                from sqlalchemy import text
+
+                db.execute(text("SET LOCAL lock_timeout='2s'"))
+                db.execute(
+                    text("SELECT set_config('memory.namespace_id',:namespace,true)"),
+                    {"namespace": str(job["namespace_id"])},
+                )
+            result = db.execute(
+                update(o.jobs)
+                .where(
+                    o.jobs.c.id == job["id"],
+                    o.jobs.c.status == "RUNNING",
+                    o.jobs.c.lease_token == job["lease_token"],
+                )
+                .values(lease_until=utcnow() + timedelta(minutes=10))
+            )
+            return result.rowcount == 1

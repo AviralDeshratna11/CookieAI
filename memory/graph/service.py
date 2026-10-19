@@ -153,7 +153,38 @@ def sync(repo, memory):
         )
 
 
-def activation(repo, seeds, max_hops=3, hop_decay=0.55, minimum=0.10, max_nodes=500):
+def activation(
+    repo,
+    seeds,
+    max_hops=3,
+    hop_decay=0.55,
+    minimum=0.10,
+    max_nodes=500,
+    permitted_memory_ids=None,
+):
+    if permitted_memory_ids is None:
+        from database import tables as foundation
+        from memory.schemas import Memory
+
+        permitted_memory_ids = {
+            item.memory_id
+            for row in repo.db.execute(
+                select(foundation.memories.c.payload).where(
+                    foundation.memories.c.namespace_id == repo.ctx.namespace_id,
+                    foundation.memories.c.owner_id == repo.ctx.user_id,
+                )
+            )
+            if repo.allowed(item := Memory.model_validate(row.payload))
+        }
+    visible_memories = set(permitted_memory_ids)
+    visible_entities = set(
+        repo.db.execute(
+            select(h.memory_entities.c.entity_id).where(
+                h.memory_entities.c.memory_id.in_(visible_memories)
+            )
+        ).scalars()
+    )
+    visible_nodes = visible_memories | visible_entities
     rows = list(
         repo.db.execute(
             select(g.edges).where(g.edges.c.namespace_id == repo.ctx.namespace_id)
@@ -162,13 +193,14 @@ def activation(repo, seeds, max_hops=3, hop_decay=0.55, minimum=0.10, max_nodes=
     allowed = [
         row
         for row in rows
-        if permitted(repo, row["source_id"])
-        and permitted(repo, row["target_id"])
+        if row["source_id"] in visible_nodes
+        and row["target_id"] in visible_nodes
         and all(
-            permitted(repo, UUID(item)) for item in row["payload"]["source_memory_ids"]
+            UUID(item) in visible_memories
+            for item in row["payload"]["source_memory_ids"]
         )
     ]
-    activated = {key: score for key, score in seeds.items() if permitted(repo, key)}
+    activated = {key: score for key, score in seeds.items() if key in visible_nodes}
     frontier = dict(activated)
     visited = set()
     for _ in range(min(3, max(0, max_hops))):

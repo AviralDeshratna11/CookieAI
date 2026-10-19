@@ -1,0 +1,9 @@
+{
+  "backup": "memory-20261019T175147Z-f4c516e9.dump",
+  "bytes": 608393,
+  "encrypted": false,
+  "restore_database": "memory_restore_d241b611e8364b75b63991a038a6dffd",
+  "restored_memory_count": 125,
+  "source_memory_count": 125,
+  "count_matches": true
+}

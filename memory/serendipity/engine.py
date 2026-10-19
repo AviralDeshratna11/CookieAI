@@ -2,6 +2,7 @@
 
 import hashlib
 import random
+from datetime import timedelta
 
 from sqlalchemy import insert, select
 
@@ -177,6 +178,10 @@ class SerendipityEngine:
                         truth_confidence=confidence,
                         novelty=novelty,
                         future_utility=utility,
+                        expires_at=None
+                        if active
+                        else utcnow()
+                        + timedelta(days=self.memory.settings.candidate_retention_days),
                         **evidence_policy(evidence),
                     ),
                 )

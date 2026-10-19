@@ -1,0 +1,15 @@
+{
+  "verified_at": "2026-10-19T17:53:40.684526+00:00",
+  "api_healthy": true,
+  "migrated_memory_retrieval": true,
+  "context_composition": true,
+  "insights_visible": 1,
+  "prospective_visible": 3,
+  "jobs_visible": 50,
+  "api_write_confirmed_in_supabase": true,
+  "cross_session_read": true,
+  "temporary_memory_deleted": true,
+  "invalid_token_denied": true,
+  "pretest_job_history_restored": 190,
+  "existing_deletion_behavior": "Deleting a memory clears all jobs in that namespace; smoke-test job history restored from frozen local source after verifying all original memory IDs remain."
+}

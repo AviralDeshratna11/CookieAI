@@ -42,6 +42,10 @@ class OutboxPublisher:
                 .order_by(t.outbox.c.created_at)
                 .limit(limit)
             )
+            if self.context:
+                statement = statement.where(
+                    t.outbox.c.namespace_id == self.context.namespace_id
+                )
             if db.dialect.name == "postgresql":
                 statement = statement.with_for_update(skip_locked=True)
             rows = list(db.execute(statement).mappings())

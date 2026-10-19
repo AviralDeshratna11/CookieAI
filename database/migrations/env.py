@@ -14,12 +14,13 @@ if context.is_offline_mode():
     with context.begin_transaction():
         context.run_migrations()
 else:
-    engine = create_engine(url, poolclass=pool.NullPool)
-    with engine.connect() as connection:
+
+    def run_online(connection, owned):
         # Qualify the version table so another schema on search_path cannot make
         # a fresh schema appear migrated already.
         schema = connection.exec_driver_sql("SELECT current_schema()").scalar_one()
-        connection.commit()
+        if owned:
+            connection.commit()
         context.configure(
             connection=connection,
             target_metadata=metadata,
@@ -27,3 +28,11 @@ else:
         )
         with context.begin_transaction():
             context.run_migrations()
+
+    supplied_connection = context.config.attributes.get("connection")
+    if supplied_connection is not None:
+        run_online(supplied_connection, False)
+    else:
+        engine = create_engine(url, poolclass=pool.NullPool)
+        with engine.connect() as connection:
+            run_online(connection, True)

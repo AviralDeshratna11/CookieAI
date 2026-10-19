@@ -1,7 +1,11 @@
 .venv
 .git
 .env
+.env.*
+!.env.example
 config/credentials.json
+config/worker-context.json
+backups
 __pycache__
 .pytest_cache
 *.db

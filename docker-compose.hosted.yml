@@ -1,0 +1,15 @@
+# Opt-in only: the default compose file continues to use local PostgreSQL.
+# Current PC: include --env-file .env.cloud after .env.supabase for direct NVIDIA models.
+# docker compose --env-file .env --env-file .env.supabase --env-file .env.cloud -f docker-compose.yml -f docker-compose.hosted.yml up -d api worker
+services:
+  migrate:
+    environment:
+      MEMORY_DATABASE_URL: ${MEMORY_HOSTED_MIGRATION_DATABASE_URL:?Set the hosted migration URL in .env.supabase}
+      MEMORY_MIGRATION_DATABASE_URL: ${MEMORY_HOSTED_MIGRATION_DATABASE_URL:?Set the hosted migration URL in .env.supabase}
+    depends_on: !reset {}
+  api:
+    environment:
+      MEMORY_DATABASE_URL: ${MEMORY_HOSTED_DATABASE_URL:?Set the restricted hosted application URL in .env.supabase}
+  worker:
+    environment:
+      MEMORY_DATABASE_URL: ${MEMORY_HOSTED_DATABASE_URL:?Set the restricted hosted application URL in .env.supabase}

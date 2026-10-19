@@ -1,0 +1,150 @@
+{
+  "kind": "synthetic acceptance using real embedding and reasoning models",
+  "run_id": "dd4da3d1",
+  "semantic": {
+    "queries": 6,
+    "ranks": [
+      1,
+      1,
+      2,
+      1,
+      1,
+      1
+    ],
+    "recall_at_5": 1.0,
+    "mrr_at_5": 0.9166666666666666
+  },
+  "episode_ids": [
+    "4a4b68e3-5c60-40dd-a12c-02338648788a",
+    "19923f6c-83b6-4e2e-b0e2-c919e4d5f00e",
+    "7af99209-93bf-4f15-ac00-e4500692413d",
+    "c6b3669c-e525-4d4d-8a8d-d4f7d4404f6f",
+    "53d06639-fa8b-434b-9514-af78f6b78aa2",
+    "bd665dc4-79a2-4391-875c-35bdc802a359",
+    "5f4a6c61-66d8-4b4c-b019-822431d5901c",
+    "a5369264-d8f6-4607-96ce-daad2a30ddc2",
+    "5f158c88-23a5-4787-9d12-7b018ca03bd5",
+    "409f3e28-cc94-45f6-b026-f273888104e5",
+    "6909c28e-d110-4247-97be-70d4fa0cae58",
+    "3ff66a10-5429-4285-9ee2-624a179e9cf4",
+    "7b8fd1e3-4588-4707-ae05-b127297ab5eb",
+    "1fd7d831-b9db-43bb-afcb-5b98825dfe63",
+    "0c2c65a9-1781-4799-b670-8202ea0eccf9",
+    "e7acdfed-6b35-445b-8612-960001308147",
+    "91c51b37-088f-4a49-9531-cf666c399aed",
+    "7ea9faca-6502-43f9-84f3-21736aa10a79",
+    "19d27d99-7974-4eaf-9d69-1ec93ff158e2",
+    "6b9641b0-9271-4775-85df-53638ac38f27",
+    "f036fd66-f06e-41ab-b859-d49e1d0273a0",
+    "88bca91a-2b55-4f6a-bf9c-e0b996abae13",
+    "c87d27c9-ae35-41a5-8b3a-65022e75543e",
+    "94e4aa6c-5127-40f9-be6f-1e64d590519a"
+  ],
+  "finding": {
+    "insight_id": "d108b1bd-6442-4598-ac96-78c364cdfa5d",
+    "statement": "Observed association: {\"parameters\":{\"configuration\":\"limited-timeout\"},\"tool\":\"SyntheticProbe-d04b59b9\"} had failures in 20 episode(s), with 4 successful counterexample(s). This is correlation, not causation.",
+    "type": "FAILURE_PATTERN",
+    "epistemic_type": "CORRELATED",
+    "supporting_episode_ids": [
+      "4a4b68e3-5c60-40dd-a12c-02338648788a",
+      "19923f6c-83b6-4e2e-b0e2-c919e4d5f00e",
+      "7af99209-93bf-4f15-ac00-e4500692413d",
+      "c6b3669c-e525-4d4d-8a8d-d4f7d4404f6f",
+      "53d06639-fa8b-434b-9514-af78f6b78aa2",
+      "bd665dc4-79a2-4391-875c-35bdc802a359",
+      "5f4a6c61-66d8-4b4c-b019-822431d5901c",
+      "a5369264-d8f6-4607-96ce-daad2a30ddc2",
+      "5f158c88-23a5-4787-9d12-7b018ca03bd5",
+      "409f3e28-cc94-45f6-b026-f273888104e5",
+      "6909c28e-d110-4247-97be-70d4fa0cae58",
+      "3ff66a10-5429-4285-9ee2-624a179e9cf4",
+      "7b8fd1e3-4588-4707-ae05-b127297ab5eb",
+      "1fd7d831-b9db-43bb-afcb-5b98825dfe63",
+      "0c2c65a9-1781-4799-b670-8202ea0eccf9",
+      "e7acdfed-6b35-445b-8612-960001308147",
+      "91c51b37-088f-4a49-9531-cf666c399aed",
+      "7ea9faca-6502-43f9-84f3-21736aa10a79",
+      "19d27d99-7974-4eaf-9d69-1ec93ff158e2",
+      "6b9641b0-9271-4775-85df-53638ac38f27"
+    ],
+    "counterexample_episode_ids": [
+      "f036fd66-f06e-41ab-b859-d49e1d0273a0",
+      "88bca91a-2b55-4f6a-bf9c-e0b996abae13",
+      "c87d27c9-ae35-41a5-8b3a-65022e75543e",
+      "94e4aa6c-5127-40f9-be6f-1e64d590519a"
+    ],
+    "support_count": 20,
+    "counterexample_count": 4,
+    "truth_confidence": 0.7407407407407407,
+    "causality_status": "NONE",
+    "status": "ACTIVE",
+    "critic_verdict": "VALIDATED",
+    "last_validated": "2026-10-19T16:41:33.693776+00:00",
+    "derivation": "STATISTICAL_AND_LLM",
+    "model_review": {
+      "generator_model": "nemotron-3-ultra:cloud",
+      "critic_model": "nemotron-3-ultra:cloud",
+      "critic_independence": "separate invocation",
+      "prompt_versions": [
+        "reflection_agent:v1",
+        "insight_critic:v1"
+      ],
+      "proposal": {
+        "statement": "The SyntheticProbe-d04b59b9 tool with 'limited-timeout' configuration exhibits a high failure rate (20 of 24 observed episodes) when evaluating recorded probes, with failures characterized by 'Attempt probe: failed' and successes by 'Attempt probe: succeeded'.",
+        "supporting_episode_ids": [
+          "4a4b68e3-5c60-40dd-a12c-02338648788a",
+          "19923f6c-83b6-4e2e-b0e2-c919e4d5f00e",
+          "7af99209-93bf-4f15-ac00-e4500692413d",
+          "c6b3669c-e525-4d4d-8a8d-d4f7d4404f6f",
+          "53d06639-fa8b-434b-9514-af78f6b78aa2",
+          "bd665dc4-79a2-4391-875c-35bdc802a359",
+          "5f4a6c61-66d8-4b4c-b019-822431d5901c",
+          "a5369264-d8f6-4607-96ce-daad2a30ddc2",
+          "5f158c88-23a5-4787-9d12-7b018ca03bd5",
+          "409f3e28-cc94-45f6-b026-f273888104e5",
+          "6909c28e-d110-4247-97be-70d4fa0cae58",
+          "3ff66a10-5429-4285-9ee2-624a179e9cf4",
+          "7b8fd1e3-4588-4707-ae05-b127297ab5eb",
+          "1fd7d831-b9db-43bb-afcb-5b98825dfe63",
+          "0c2c65a9-1781-4799-b670-8202ea0eccf9",
+          "e7acdfed-6b35-445b-8612-960001308147",
+          "91c51b37-088f-4a49-9531-cf666c399aed",
+          "7ea9faca-6502-43f9-84f3-21736aa10a79",
+          "19d27d99-7974-4eaf-9d69-1ec93ff158e2",
+          "6b9641b0-9271-4775-85df-53638ac38f27"
+        ],
+        "counterexample_episode_ids": [
+          "f036fd66-f06e-41ab-b859-d49e1d0273a0",
+          "88bca91a-2b55-4f6a-bf9c-e0b996abae13",
+          "c87d27c9-ae35-41a5-8b3a-65022e75543e",
+          "94e4aa6c-5127-40f9-be6f-1e64d590519a"
+        ],
+        "applicability_conditions": [
+          "Tool: SyntheticProbe-d04b59b9",
+          "Configuration: limited-timeout",
+          "Task: evaluate a recorded probe",
+          "Environment: Synthetic acceptance test sequence"
+        ],
+        "alternative_explanations": [
+          "The timeout limit may be too short for some probe evaluations, causing intermittent failures",
+          "Probe complexity or size may vary across events, affecting completion within timeout",
+          "System load or resource contention may differ between event executions",
+          "The synthetic test sequence may include deliberately varied probe characteristics",
+          "Success events (20-23) occurring after failure events (0-19) may indicate warm-up effects or state changes"
+        ]
+      },
+      "critique": {
+        "verdict": "VALIDATED",
+        "reason": "The supplied evidence includes 20 distinct failure episodes (event 0-19) and 4 distinct success episodes (event 20-23) for the SyntheticProbe-d04b59b9 tool with limited-timeout configuration, matching the claimed 20 of 24 failure rate. No duplicate episode IDs are present. Alternative explanations (timeout length, probe complexity, system load, warm-up) are noted but do not falsify the observed association; they only suggest possible contributing factors. The statement is descriptive and does not assert causality. Therefore the association is validated based on the provided data."
+      }
+    },
+    "population_count": 24,
+    "confidence_basis": "support / (support + counterexamples + 3); heuristic, not a calibrated probability",
+    "causal": false,
+    "baseline_comparison": "not established; a within-feature association only"
+  },
+  "finding_retrieved": true,
+  "finding_in_context": true,
+  "prospective_trigger": "passed, with repeat suppression",
+  "unauthenticated_denial": 401
+}

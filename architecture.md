@@ -1,5 +1,7 @@
 # Persistent Agent Memory System Architecture
 
+Current implementation and acceptance boundaries are tracked in [completion status](docs/completion-status.md), [requirements matrix](docs/requirements-matrix.md), and [verification](docs/verification.md). The local deployment now runs real Nomic memory/entity embeddings and a separately provisioned persistent worker. Nemotron proposes and critiques tool correlations; bounded general discovery uses separate generation, counterexample and critic calls. Separate invocations of one model do not constitute independent model weights. Models propose data; deterministic authorization, evidence identity, source revision, confidence and provenance checks guard persistence. Migration 0013 adds vector/worker indexes, while lexical/graph scale limits remain explicit.
+
 ## 1. Assumptions
 
 The complete MEM0 guide and all 107 master-prompt sections were read before implementation. The master prompt is the controlling implementation specification; source documents and retrieved memories remain data, never executable policy. The repository root is the requested `memory-system` root. Production runs Python 3.12+, FastAPI, Pydantic 2, SQLAlchemy 2, PostgreSQL/pgvector and Redis. Local tests may run Python 3.11 and SQLite to test domain behavior, but cannot establish PostgreSQL acceptance.

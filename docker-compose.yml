@@ -37,25 +37,70 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    environment:
+    environment: &runtime_environment
       MEMORY_DATABASE_URL: postgresql+psycopg://memory_app:${MEMORY_APP_PASSWORD:-memory-app-local-only}@postgres:5432/memory
       MEMORY_CREDENTIALS_FILE: /run/secrets/credentials
       MEMORY_EMBEDDING_BACKEND: ${MEMORY_EMBEDDING_BACKEND:-hash-test}
       MEMORY_EMBEDDING_MODEL: ${MEMORY_EMBEDDING_MODEL:-hash-test}
+      MEMORY_EMBEDDING_VERSION: ${MEMORY_EMBEDDING_VERSION:-1}
+      MEMORY_EMBEDDING_DOCUMENT_PREFIX: ${MEMORY_EMBEDDING_DOCUMENT_PREFIX:-}
+      MEMORY_EMBEDDING_QUERY_PREFIX: ${MEMORY_EMBEDDING_QUERY_PREFIX:-}
       MEMORY_EMBEDDING_DIMENSIONS: ${MEMORY_EMBEDDING_DIMENSIONS:-64}
       MEMORY_PROVIDER_BASE_URL: ${MEMORY_PROVIDER_BASE_URL:-http://host.docker.internal:11434/v1}
+      MEMORY_PROVIDER_API_KEY: ${MEMORY_PROVIDER_API_KEY:-local}
+      MEMORY_EMBEDDING_PROVIDER_BASE_URL: ${MEMORY_EMBEDDING_PROVIDER_BASE_URL:-}
+      MEMORY_EMBEDDING_PROVIDER_API_KEY: ${MEMORY_EMBEDDING_PROVIDER_API_KEY:-}
+      MEMORY_EMBEDDING_INPUT_TYPE_MODE: ${MEMORY_EMBEDDING_INPUT_TYPE_MODE:-prefix}
+      MEMORY_PROVIDER_ENABLE_THINKING: ${MEMORY_PROVIDER_ENABLE_THINKING:-false}
       MEMORY_EXTRACTION_MODEL: ${MEMORY_EXTRACTION_MODEL:-qwen2.5:7b}
       MEMORY_EXTRACTION_RESPONSE_FORMAT: ${MEMORY_EXTRACTION_RESPONSE_FORMAT:-json_schema}
       MEMORY_REQUEST_TIMEOUT_SECONDS: ${MEMORY_REQUEST_TIMEOUT_SECONDS:-60}
+      MEMORY_REFLECTION_BACKEND: ${MEMORY_REFLECTION_BACKEND:-rules}
+      MEMORY_GENERAL_DISCOVERY_ENABLED: ${MEMORY_GENERAL_DISCOVERY_ENABLED:-false}
+      MEMORY_REFLECTION_MODEL: ${MEMORY_REFLECTION_MODEL:-nemotron-3-ultra:cloud}
+      MEMORY_CRITIC_MODEL: ${MEMORY_CRITIC_MODEL:-nemotron-3-ultra:cloud}
+      MEMORY_REASONING_EFFORT: ${MEMORY_REASONING_EFFORT:-none}
+      MEMORY_REFLECTION_MAX_MODEL_CANDIDATES: ${MEMORY_REFLECTION_MAX_MODEL_CANDIDATES:-1}
+      MEMORY_REDIS_URL: redis://redis:6379/0
+      MEMORY_RATE_LIMIT_BACKEND: ${MEMORY_RATE_LIMIT_BACKEND:-redis}
+      MEMORY_REFLECTION_INTERVAL_SECONDS: ${MEMORY_REFLECTION_INTERVAL_SECONDS:-600}
+      MEMORY_SERENDIPITY_INTERVAL_SECONDS: ${MEMORY_SERENDIPITY_INTERVAL_SECONDS:-3600}
+      MEMORY_DAILY_INTERVAL_SECONDS: ${MEMORY_DAILY_INTERVAL_SECONDS:-86400}
+      MEMORY_DREAMER_INTERVAL_SECONDS: ${MEMORY_DREAMER_INTERVAL_SECONDS:-604800}
+    restart: unless-stopped
     secrets: [credentials]
     ports:
       - "127.0.0.1:${MEMORY_API_PORT:-8000}:8000"
     depends_on:
       migrate:
         condition: service_completed_successfully
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: ["python", "-m", "apps.worker.main"]
+    environment:
+      <<: *runtime_environment
+      MEMORY_WORKER_CONTEXT_FILE: /run/secrets/worker_context
+    secrets: [worker_context]
+    restart: unless-stopped
+    stop_grace_period: 8m
+    healthcheck:
+      test: ["CMD", "python", "-m", "apps.worker.health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
 secrets:
   credentials:
     file: ./config/credentials.json
+  worker_context:
+    file: ./config/worker-context.json
 volumes:
   memory_postgres:
   memory_redis:

@@ -1,0 +1,16 @@
+{
+  "started_at": "2026-10-19T18:11:17.511578+00:00",
+  "model": "nvidia/nemotron-3-embed-1b",
+  "version": "nvidia-nemotron3-embed1b-passage-query-v1",
+  "dimensions": 2048,
+  "namespaces": {
+    "c147cf1f-8d36-4199-9991-4ce264ea56fa": 123,
+    "ac3bf825-ab2c-469d-841c-18b362e0060e": 0,
+    "92cb4f6e-9d18-45e7-9f6d-a39c000ff279": 1,
+    "1b9f2ed0-b8ac-431d-9a52-65c9ea9bc762": 0,
+    "3a71dee9-c22a-447e-ab9f-abd83aa3e877": 1
+  },
+  "memories_preserved": 125,
+  "entity_projections": 6,
+  "all_namespaces_committed_atomically": true
+}

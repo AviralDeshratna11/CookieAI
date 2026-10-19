@@ -31,3 +31,30 @@ class RateLimiter:
                 return False
             events.append(now)
             return True
+
+
+class RedisRateLimiter:
+    """Atomic shared ingress budget. Provider failures are handled by the gateway."""
+
+    SCRIPT = """
+    local value = redis.call('INCR', KEYS[1])
+    if value == 1 then redis.call('PEXPIRE', KEYS[1], ARGV[1]) end
+    return value <= tonumber(ARGV[2]) and 1 or 0
+    """
+
+    def __init__(
+        self, connection, limit=120, window_seconds=60, prefix="memory.ingress:"
+    ):
+        self.connection, self.limit = connection, limit
+        self.window_ms = int(window_seconds * 1000)
+        self.prefix = prefix
+
+    def allow(self, key):
+        import hashlib
+
+        digest = hashlib.sha256(key.encode()).hexdigest()
+        return bool(
+            self.connection.eval(
+                self.SCRIPT, 1, self.prefix + digest, self.window_ms, self.limit
+            )
+        )

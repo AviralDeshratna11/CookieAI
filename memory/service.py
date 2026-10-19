@@ -34,7 +34,10 @@ class MemoryService:
             extractor,
             settings,
         )
+        from memory.retrieval.cache import QueryVectorCache
         from memory.retrieval.hybrid import LocalQueryRewriter
+
+        self.query_cache = QueryVectorCache(settings.query_embedding_cache_seconds)
 
         if settings.query_rewriter_backend == "compatible":
             from models.providers import CompatibleQueryRewriter
@@ -415,6 +418,21 @@ class MemoryService:
                 in {"DEEP", "AUTOBIOGRAPHICAL", "ASSOCIATIVE"},
                 as_of=request.as_of,
             )
+            from database import reflection_tables
+
+            hidden_candidates = set(
+                connection.execute(
+                    select(reflection_tables.insights.c.id).where(
+                        reflection_tables.insights.c.namespace_id == ctx.namespace_id,
+                        reflection_tables.insights.c.payload["status"]
+                        .as_string()
+                        .in_(["CANDIDATE", "REJECTED", "INVALIDATED"]),
+                    )
+                ).scalars()
+            )
+            corpus = [
+                memory for memory in corpus if memory.memory_id not in hidden_candidates
+            ]
             permitted = [memory.memory_id for memory in corpus]
             if request.mode == "PROCEDURAL":
                 corpus = [
@@ -425,7 +443,19 @@ class MemoryService:
             corpus_terms = [terms(memory.canonical_text) for memory in corpus]
             candidates = set()
             for query in rewrites:
-                vector = self.vector(query)
+                vector = self.query_cache.get(
+                    ctx.namespace_id,
+                    self.embedder.model_id,
+                    self.embedder.version,
+                    self.embedder.dimensions,
+                    query,
+                    lambda: validate_vector(
+                        getattr(self.embedder, "embed_query", self.embedder.embed)(
+                            query
+                        ),
+                        self.embedder.dimensions,
+                    ),
+                )
                 for memory, value in repo.search(
                     vector,
                     self.embedder.model_id,
@@ -462,6 +492,7 @@ class MemoryService:
                 max_hops=policy.graph_max_hops,
                 hop_decay=policy.graph_hop_decay,
                 minimum=policy.graph_minimum_activation,
+                permitted_memory_ids=permitted,
             )
             candidates.update(graph_scores)
             from memory.retrieval.context_signals import signals as contextual_signals

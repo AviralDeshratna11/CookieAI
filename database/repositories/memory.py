@@ -4,6 +4,7 @@ import hashlib
 from typing import Protocol
 from uuid import UUID, uuid4
 
+from pgvector.sqlalchemy import HALFVEC, Vector
 from sqlalchemy import delete, func, insert, select, text, update
 
 from database import tables as t
@@ -258,10 +259,46 @@ class SQLMemoryRepository:
             )
         )
         if self.db.dialect.name == "postgresql":
-            # Object ACL filtering occurs below before selecting the final candidate pool.
-            statement = statement.order_by(
-                t.embeddings.c.vector.cosine_distance(vector)
+            from sqlalchemy import DateTime, or_
+            from sqlalchemy.dialects.postgresql import JSONB
+
+            agents = t.memories.c.payload["allowed_agent_ids"].cast(JSONB)
+            projects = t.memories.c.payload["allowed_project_ids"].cast(JSONB)
+            statement = statement.where(
+                or_(
+                    func.jsonb_array_length(agents) == 0,
+                    agents.contains([str(self.ctx.requesting_agent_id)]),
+                ),
+                or_(
+                    func.jsonb_array_length(projects) == 0,
+                    *[
+                        projects.contains([str(project)])
+                        for project in self.ctx.project_ids
+                    ],
+                ),
             )
+            instant = as_of or utcnow()
+            for name, compare in (("valid_from", "before"), ("valid_until", "after")):
+                value = (
+                    t.memories.c.payload[name].as_string().cast(DateTime(timezone=True))
+                )
+                statement = statement.where(
+                    or_(
+                        value.is_(None),
+                        value <= instant if compare == "before" else value > instant,
+                    )
+                )
+            # HNSW vector indexes support up to 2,000 dimensions. Use a
+            # half-precision candidate index above that, then rerank against
+            # the original full-precision vectors below.
+            candidate_type = (
+                HALFVEC(len(vector))
+                if 2000 < len(vector) <= 4000
+                else Vector(len(vector))
+            )
+            statement = statement.order_by(
+                t.embeddings.c.vector.cast(candidate_type).cosine_distance(vector)
+            ).limit(limit)
         scored = []
         for row in self.db.execute(statement):
             memory = Memory.model_validate(row.payload)

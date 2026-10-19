@@ -1,0 +1,10 @@
+{
+  "verified_at": "2026-10-19T18:14:52.652740+00:00",
+  "api_healthy": true,
+  "migrated_memory_retrieval": true,
+  "context_composition": true,
+  "insights_visible": 1,
+  "prospective_visible": 3,
+  "jobs_visible": 50,
+  "invalid_token_denied": true
+}

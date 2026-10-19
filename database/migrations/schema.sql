@@ -711,5 +711,20 @@ CREATE POLICY tenant_isolation ON raw_sources USING (namespace_id::text=current_
 
 UPDATE alembic_version SET version_num='0012' WHERE alembic_version.version_num = '0011';
 
+-- Running upgrade 0012 -> 0013
+
+CREATE INDEX ix_memory_vectors_768_hnsw ON memory_embeddings
+        USING hnsw ((vector::vector(768)) vector_cosine_ops) WHERE dimensions=768;
+
+CREATE INDEX ix_outbox_pending_namespace ON outbox_events(namespace_id,created_at) WHERE delivered_at IS NULL;
+
+CREATE INDEX ix_jobs_namespace_ready ON background_jobs(namespace_id,status,available_at,priority);
+
+CREATE INDEX ix_reflection_cursor_namespace ON reflection_jobs(namespace_id,cursor_time DESC);
+
+CREATE INDEX ix_features_namespace_changed ON episode_features(namespace_id,created_at);
+
+UPDATE alembic_version SET version_num='0013' WHERE alembic_version.version_num = '0012';
+
 COMMIT;
 

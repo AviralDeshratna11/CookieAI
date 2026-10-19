@@ -7,6 +7,7 @@ htmlcov/
 .env.*
 !.env.example
 config/credentials.json
+config/worker-context.json
 .ruff_cache/
 .mypy_cache/
 .pyright/
@@ -29,6 +30,7 @@ Thumbs.db
 # Local extraction of the supplied architecture reference, not application source.
 reference-guide.txt
 docs/reference-figures/
+backups/
 *.db
 *.egg-info/
 test-results*.xml

@@ -1,6 +1,20 @@
 # Verification and practical limits
 
-The implementation was tested progressively before advancing through the twelve phases. The final suite contains **80 passing tests**, on both Windows Python 3.11 and Linux Python 3.12, with PostgreSQL and Redis enabled and no skipped tests. Ruff checks and formatting also pass. One upstream Starlette/httpx test-client deprecation warning remains; live HTTP tests independently exercise real TCP requests.
+The implementation was tested progressively before advancing through the twelve phases. The latest completion-pass suite contains **92 passing tests on both Windows Python 3.11 and the pinned Linux Python 3.12 Docker image**, with PostgreSQL and Redis enabled and no skips. Ruff checks and formatting pass. One upstream Starlette/httpx test-client deprecation warning remains; live HTTP tests independently exercise real TCP requests.
+
+## Completion-pass live evidence
+
+The configured API and persistent worker use 768-dimensional local Nomic embeddings and Nemotron 3 Ultra through Ollama. `live-acceptance-results.json` records a six-query paraphrase check (Recall@5 1.0, MRR@5 approximately 0.917), an automatically stored tool/configuration correlation from 20 synthetic failures and four successful counterexamples, new-session retrieval/context, prospective activation with repeat suppression, and HTTP 401 for an invalid credential. These are small labeled synthetic evaluations, not production accuracy estimates.
+
+`live-revision-results.json` adds a successful synthetic counterexample through the actual event-driven worker. The same finding's confidence decreased from approximately 0.741 to 0.714 and its counterexample count increased from four to five. It remained active after review and produced an evidence-linked inferred future opportunity automatically.
+
+`live-performance-results.json` measures 40 repeated-query requests at concurrency four over 118 visible records using real embeddings. There were no errors; throughput was approximately 3.21 requests/sec and p95 latency approximately 1.40 seconds after graph permission batching and bounded query-vector caching. This does not meet the master prompt's normal-recall 500 ms target and is not a diverse-query or sustained-load benchmark. The cache stores only expiring query vectors, indexed by namespace/model-specific hashes; retrieved memories are never cached by this layer.
+
+`general-discovery-results.json` records the real worker's recurring-choice evaluation. Its job completed but accepted no finding. Controlled tests exercise the proposal/counterexample/critic path, candidate isolation, and provenance. This does not establish useful general-discovery precision. Rejected proposals now retain an expiring review record with critic reasons rather than being silently promoted.
+
+`backup-drill-results.json` records a local dump restored to a fresh separate database with 120 matching canonical records. The dump is unencrypted and Git-ignored. No live database was overwritten. Source correction/counterevidence and cascading deletion of findings/opportunities are additionally tested on real PostgreSQL.
+
+Migration 0013 adds dimension-filtered vector and worker lookup indexes. Candidate vector fetches now apply ACL and validity filters in SQL before their limit. Lexical/graph paths still have full-corpus behavior; sustained scaling and filtered ANN quality require separate evaluation. Docker dependencies now install from `requirements.lock`.
 
 The suite covers canonical schema/time/confidence validation; transaction rollback; concurrent duplicate writes; model-space isolation; namespace, agent, project and operation scopes; private derived evidence; rolling-buffer isolation; exact BM25 candidate recovery; entity-vector projections; temporal supersession and as-of recall; contradictions; episodes; 120-day structural analogy; repeated-evidence procedures; new-session and cross-agent transfer; 100-episode hidden failure associations; counterexamples; confidence revision; bounded graph/serendipity; decay; clusters; prospective recall; source injection treated as data; deletion; durable jobs; Redis working references; outbox dispatch; and non-superuser RLS.
 

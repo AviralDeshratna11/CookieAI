@@ -1,5 +1,7 @@
 ﻿# Persistent Agent Memory System
 
+For this PC's configured Supabase database and direct NVIDIA Nemotron APIs, use [running instructions](docs/running-locally.md). Its startup command includes `.env.supabase` and `.env.cloud`; the generic local setup below uses local database/model defaults.
+
 A runnable Python backend built from the complete MEM0 guide and overriding master specification. It preserves main memory vectors, entity vectors and relational state in PostgreSQL/pgvector, with Redis working references and event distribution.
 
 The implementation covers atomic extraction and rolling context; hybrid recall and entities; temporal updates; episodes, structural experiences and conditional procedures; goals and context transfer; graph association; evidence-backed reflection and serendipity; decay, clusters and prospective triggers; provenance and deletion. Durable workers operate outside conversation turns. Source data, statements, inferences and correlations retain distinct labels.
@@ -20,12 +22,13 @@ docker compose up -d postgres redis
 .\.venv\Scripts\alembic upgrade head
 .\.venv\Scripts\python -m apps.cli.provision_role
 .\.venv\Scripts\python -m apps.cli.bootstrap
+.\.venv\Scripts\python -m apps.cli.provision_worker
 .\.venv\Scripts\uvicorn apps.api.main:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
 PostgreSQL binds to localhost:55432; Redis uses localhost:6379. The API uses memory_app, which cannot bypass RLS. Migrations and bootstrap use MEMORY_MIGRATION_DATABASE_URL separately. Fresh volumes initialize the application role automatically; provision_role handles an existing development volume. Use a non-superuser connection for the deployed API.
 
-Bootstrap prints a bearer token once and saves only its digest in ignored config/credentials.json. Requests require Authorization: Bearer <token>, X-Session-ID: <uuid>, and X-Purpose. Credentials bind user, agent, namespace and optional projects server-side. OpenAPI is served at /docs and /openapi.json; a snapshot is in docs/openapi.json. After bootstrap, run the API container with docker compose up --build -d api.
+Bootstrap prints a bearer token once and saves only its digest in ignored config/credentials.json. Requests require Authorization: Bearer <token>, X-Session-ID: <uuid>, and X-Purpose. Credentials bind user, agent, namespace and optional projects server-side. OpenAPI is served at /docs and /openapi.json; a snapshot is in docs/openapi.json. After bootstrap and worker provisioning, run `docker compose up --build -d api worker`. For Docker, set the provider URL to `http://host.docker.internal:11434/v1`; a host Python process uses localhost. Pull the configured embedding model and sign in to Ollama for the cloud generation model before invoking them.
 
 ## Models and policy
 
@@ -39,10 +42,14 @@ config/memory.yaml supplies typed policy. MEMORY_<KEY> environment variables and
 
 ```python
 from examples.client import MemoryClient
-client = MemoryClient('http://localhost:8000', token='your-bootstrap-token')
-client.remember([{'role': 'user', 'content': 'Project Alpha uses PostgreSQL.'}],
-                idempotency_key='alpha-choice-v1', mode='raw')
-hits = client.recall('Alpha PostgreSQL')
+
+client = MemoryClient("http://localhost:8000", token="your-bootstrap-token")
+client.remember(
+    [{"role": "user", "content": "Project Alpha uses PostgreSQL."}],
+    idempotency_key="alpha-choice-v1",
+    mode="raw",
+)
+hits = client.recall("Alpha PostgreSQL")
 client.close()
 ```
 
@@ -54,7 +61,7 @@ memory.tools.AgentTools(memory_service, trusted_context).registry() exposes all 
 
 ## Background workers
 
-Provision a service agent with namespace grants. Set MEMORY_WORKER_CONTEXT to RequestContext JSON (user_id, requesting_agent_id, namespace_id, session_id, purpose, requested_scope), set MEMORY_REDIS_URL and run python -m apps.worker.main.
+Run `python -m apps.cli.provision_worker` to create a separate namespace-scoped read/write service agent and the ignored `config/worker-context.json`; start it with `docker compose up -d worker`. The worker has no delete grant. It supports a context-file secret or MEMORY_WORKER_CONTEXT JSON and a configurable MEMORY_REDIS_URL. `docker compose ps` exposes heartbeat health and `docker compose logs worker` shows redacted job progress.
 
 The worker publishes the outbox, consumes Redis events and executes leased jobs. Scheduling covers ten-minute reflection, hourly exploration, daily consolidation/decay and weekly DREAMER. Session completion queues segmentation; structured episodes feed experience/procedure compilation. Workers recheck grants and never execute external actions.
 

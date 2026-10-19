@@ -1,4 +1,5 @@
 import logging
+from threading import Event, Thread
 from uuid import UUID
 
 from sqlalchemy import select
@@ -118,7 +119,20 @@ class Worker:
         job = self.queue.claim()
         if not job:
             return False
+        stopping = Event()
+
+        def heartbeat():
+            while not stopping.wait(60):
+                try:
+                    if not self.queue.renew(job):
+                        return
+                except Exception as error:
+                    log.warning("lease_renewal_failed: %s", type(error).__name__)
+
+        renewer = Thread(target=heartbeat, daemon=True)
+        renewer.start()
         try:
+            log.info("job_started: %s %s", job["queue"], job["id"])
             context = RequestContext.model_validate(job["payload"]["context"])
             context = context.model_copy(
                 update={
@@ -138,4 +152,8 @@ class Worker:
             )
         else:
             self.queue.finish(job)
+            log.info("job_completed: %s %s", job["queue"], job["id"])
+        finally:
+            stopping.set()
+            renewer.join(timeout=3)
         return True

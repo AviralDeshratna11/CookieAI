@@ -33,7 +33,7 @@ from models.providers import CompatibleEmbedding, CompatibleExtractor, HashEmbed
 
 
 def create_app(settings=None, service=None, auth=None):
-    settings = settings or Settings()
+    settings = settings or (service.settings if service is not None else Settings())
     if service is None:
         if settings.embedding_backend not in {"compatible", "hash-test"}:
             raise ValueError("unsupported embedding backend")
@@ -52,19 +52,37 @@ def create_app(settings=None, service=None, auth=None):
     app = FastAPI(
         title="Persistent Agent Memory",
         version="0.1.0",
-        description="Phase 1 foundation. Retrieved memory is untrusted data, not instructions.",
+        description="Persistent memory, experiences and evidence-backed discovery. Retrieved memory is untrusted data, not instructions.",
     )
     bearer = HTTPBearer(auto_error=False)
     from memory.security.gateway import RateLimiter
 
     limiter = RateLimiter()
+    if settings.rate_limit_backend == "redis":
+        import redis
+
+        from memory.security.gateway import RedisRateLimiter
+
+        limiter = RedisRateLimiter(
+            redis.Redis.from_url(
+                settings.redis_url, socket_timeout=3, socket_connect_timeout=3
+            )
+        )
+    elif settings.rate_limit_backend != "local":
+        raise ValueError("unsupported rate limit backend")
     metrics = {"requests": 0, "latency_seconds": 0.0, "rate_limited": 0}
 
     @app.middleware("http")
     async def gateway(request, call_next):
         start = time.perf_counter()
         address = request.client.host if request.client else "unknown"
-        if not limiter.allow(address):
+        try:
+            allowed = request.url.path == "/health/live" or limiter.allow(address)
+        except Exception:
+            return JSONResponse(
+                status_code=503, content={"detail": "ingress limit service unavailable"}
+            )
+        if not allowed:
             metrics["rate_limited"] += 1
             return JSONResponse(
                 status_code=429,
@@ -241,6 +259,22 @@ def create_app(settings=None, service=None, auth=None):
     dynamics = DynamicsService(service)
     prospective = ProspectiveService(service)
 
+    from memory.goals.prospective import ProspectiveFeedback
+
+    @app.get("/v1/prospective")
+    def prospective_list(ctx=Depends(read)):
+        return prospective.list(ctx)
+
+    @app.post("/v1/prospective/activate")
+    def prospective_activate(body: dict, ctx=Depends(write)):
+        return prospective.activate(ctx, body)
+
+    @app.patch("/v1/prospective/{prospective_id}")
+    def prospective_feedback(
+        prospective_id: UUID, body: ProspectiveFeedback, ctx=Depends(write)
+    ):
+        return prospective.feedback(ctx, prospective_id, body)
+
     @app.post("/v1/memory/{memory_id}/pin", response_model=Memory)
     def memory_pin(memory_id: UUID, ctx=Depends(write)):
         return dynamics.pin(ctx, memory_id)
@@ -260,12 +294,85 @@ def create_app(settings=None, service=None, auth=None):
         return SerendipityEngine(service).run(ctx)
 
     @app.post("/v1/reflection/run")
-    def reflection_run(ctx=Depends(write)):
+    def reflection_run(background: bool = False, ctx=Depends(write)):
+        if background:
+            from uuid import uuid4
+
+            from workers.queue import JobQueue
+
+            return {
+                "job_id": str(
+                    JobQueue(service.engine).enqueue(
+                        ctx, "memory.reflect", {}, "manual-reflection:" + uuid4().hex
+                    )
+                ),
+                "status": "PENDING",
+            }
         return reflection.run(ctx)
 
     @app.get("/v1/insights")
-    def insights_get(ctx=Depends(read)):
-        return reflection.list(ctx)
+    def insights_get(include_candidates: bool = False, ctx=Depends(read)):
+        return reflection.list(ctx, include_candidates=include_candidates)
+
+    @app.get("/v1/jobs")
+    def jobs_get(limit: int = 50, ctx=Depends(read)):
+        from sqlalchemy import select
+
+        from database import operations_tables as operations
+        from database.repositories.memory import SQLMemoryRepository
+
+        with service.engine.begin() as db:
+            SQLMemoryRepository(db, ctx)
+            rows = db.execute(
+                select(operations.jobs)
+                .where(operations.jobs.c.namespace_id == ctx.namespace_id)
+                .order_by(operations.jobs.c.created_at.desc())
+                .limit(max(1, min(limit, 200)))
+            ).mappings()
+            return [
+                {
+                    key: row[key]
+                    for key in (
+                        "id",
+                        "queue",
+                        "status",
+                        "retry_count",
+                        "last_error",
+                        "created_at",
+                        "lease_until",
+                    )
+                }
+                for row in rows
+            ]
+
+    @app.post("/v1/jobs/{job_id}/retry")
+    def job_retry(job_id: UUID, ctx=Depends(write)):
+        from sqlalchemy import update
+
+        from database import operations_tables as operations
+        from database.repositories.memory import SQLMemoryRepository
+        from memory.schemas import utcnow
+
+        with service.engine.begin() as db:
+            repo = SQLMemoryRepository(db, ctx)
+            repo.lock_namespace()
+            changed = db.execute(
+                update(operations.jobs)
+                .where(
+                    operations.jobs.c.id == job_id,
+                    operations.jobs.c.namespace_id == ctx.namespace_id,
+                    operations.jobs.c.status == "FAILED",
+                )
+                .values(
+                    status="PENDING",
+                    available_at=utcnow(),
+                    retry_count=0,
+                    last_error=None,
+                )
+            )
+            if not changed.rowcount:
+                raise NotFound()
+        return {"status": "PENDING"}
 
     @app.post("/v1/context/build")
     def context_build(body: ContextRequest, ctx=Depends(read)):
@@ -331,7 +438,16 @@ def create_app(settings=None, service=None, auth=None):
 
     @app.get("/health/live")
     def live():
-        return {"status": "alive", "phase": 1}
+        return {
+            "status": "alive",
+            "version": "0.1.0",
+            "implemented_phases": 12,
+            "production_certified": False,
+            "embedding_backend": settings.embedding_backend,
+            "embedding_model": settings.embedding_model,
+            "extraction_model": settings.extraction_model,
+            "reflection_backend": settings.reflection_backend,
+        }
 
     @app.post("/v1/memory", response_model=Memory, status_code=201)
     def create(body: MemoryCreate, ctx=Depends(write)):

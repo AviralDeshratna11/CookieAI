@@ -1,0 +1,38 @@
+{
+  "verified_at": "2026-10-19T18:18:13.443275+00:00",
+  "health": {
+    "status": "alive",
+    "version": "0.1.0",
+    "implemented_phases": 12,
+    "production_certified": false,
+    "embedding_backend": "compatible",
+    "embedding_model": "nvidia/nemotron-3-embed-1b",
+    "extraction_model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "reflection_backend": "compatible"
+  },
+  "memory_projection_spaces": [
+    [
+      "nvidia/nemotron-3-embed-1b",
+      "nvidia-nemotron3-embed1b-passage-query-v1",
+      2048,
+      125
+    ]
+  ],
+  "entity_projection_spaces": [
+    [
+      "nvidia/nemotron-3-embed-1b",
+      2048,
+      6
+    ]
+  ],
+  "revision": "0014",
+  "candidate_index_present": true,
+  "database_client_tls": true,
+  "unscoped_memory_count": 0,
+  "real_extraction_http": 200,
+  "cross_session_recall_passed": true,
+  "context_passed": true,
+  "real_critic_schema_passed": true,
+  "unit_and_integration_tests_passed": 104,
+  "paid_fallback_configured": false
+}

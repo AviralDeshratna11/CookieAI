@@ -1,0 +1,11 @@
+{
+  "requests": 40,
+  "concurrency": 4,
+  "elapsed_seconds": 12.478448299996671,
+  "requests_per_second": 3.2055267640937912,
+  "p95_ms": 1398.5499999980675,
+  "errors": 0,
+  "kind": "short local semantic retrieval smoke, not a sustained capacity test",
+  "authorized_memory_count": 118,
+  "embedding_model": "nomic-embed-text:v1.5"
+}

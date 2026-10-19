@@ -1,6 +1,6 @@
 """Redis event consumer schedules idempotent graph and experience projections."""
 
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from redis.exceptions import ResponseError
 
@@ -14,6 +14,7 @@ class EventDispatcher:
         self.queue = JobQueue(memory.engine)
         self.stream = f"memory.events:{context.namespace_id}"
         self.group = "memory-projections"
+        self.consumer = "worker-" + uuid4().hex
         try:
             redis.xgroup_create(self.stream, self.group, id="0", mkstream=True)
         except ResponseError as error:
@@ -24,14 +25,14 @@ class EventDispatcher:
         reclaimed = self.redis.xautoclaim(
             self.stream,
             self.group,
-            "worker",
+            self.consumer,
             min_idle_time=60000,
             start_id="0-0",
             count=count,
         )
         messages = [(self.stream, reclaimed[1])]
         messages += self.redis.xreadgroup(
-            self.group, "worker", {self.stream: ">"}, count=count
+            self.group, self.consumer, {self.stream: ">"}, count=count
         )
         processed = 0
         for _, entries in messages:
@@ -42,7 +43,11 @@ class EventDispatcher:
                     )
                     for key, value in raw.items()
                 }
-                if event["event_type"] == "MEMORY_CREATED":
+                if event["event_type"] in {
+                    "MEMORY_CREATED",
+                    "MEMORY_UPDATED",
+                    "MEMORY_CORRECTED",
+                }:
                     try:
                         memory = self.memory.get(self.ctx, UUID(event["object_id"]))
                     except NotFound:
@@ -55,6 +60,12 @@ class EventDispatcher:
                             "graph:" + event["event_id"],
                         )
                         if memory.type.value == "EPISODIC":
+                            self.queue.enqueue(
+                                self.ctx,
+                                "memory.reflect",
+                                {},
+                                "reflect:" + event["event_id"],
+                            )
                             self.queue.enqueue(
                                 self.ctx,
                                 "memory.experience",

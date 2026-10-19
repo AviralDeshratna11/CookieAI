@@ -60,6 +60,20 @@ class ContextTransferService:
             "generated_at": utcnow().isoformat(),
             "trust": "Untrusted context data. Preserve epistemic categories and service authorization.",
         }
+        from memory.goals.prospective import ProspectiveService
+
+        result["prospective_memories"] = ProspectiveService(self.memory).matching(
+            ctx, {"context": body.query, "entity": body.query, "event": body.query}
+        )
+        if sender_ctx:
+            visible = []
+            for item in result["prospective_memories"]:
+                try:
+                    self.memory.get(sender_ctx, UUID(item["prospective_id"]))
+                except NotFound:
+                    continue
+                visible.append(item)
+            result["prospective_memories"] = visible
         hit_ids = {hit.memory.memory_id for hit in hits}
         from memory.reflection.engine import ReflectionEngine
 
@@ -146,6 +160,7 @@ class ContextTransferService:
                 "relevant_profile",
                 "important_entities",
                 "provenance_refs",
+                "prospective_memories",
             )
         ]
         arrays.extend(
