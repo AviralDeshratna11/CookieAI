@@ -1,5 +1,16 @@
 # Persistent Agent Memory System Architecture
 
+The new [approved task supervisor](docs/autonomy-operations.md) extends the
+existing goal and SQL-job infrastructure: approval -> authorized context ->
+bounded execution -> independent verifier -> attributed canonical outcome ->
+episode/experience learning. Schedules and canonical events activate only
+approved tasks. PostgreSQL stores task/run/usage/receipt state (migration 0019);
+Redis remains operational. Hermes has no competing memory or approval authority.
+Source erasure invalidates task contexts, journals and late callbacks. Bounded
+contrastive findings remain candidates until separate evidence/review gates.
+See the [current checkpoint](docs/autonomy-execution-ledger.md) for measured
+scope and unresolved requirements; local implementation is not deployed uptime.
+
 Current provider configuration is direct NVIDIA Nemotron Ultra generation and
 Nemotron 3 Embed 1B (2048 dimensions), with canonical PostgreSQL on Supabase.
 Historical Nomic descriptions below refer to earlier implementation stages.

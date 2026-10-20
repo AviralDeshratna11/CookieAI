@@ -101,6 +101,8 @@ def execute_tool(name, arguments, workspace):
         resolved = candidate.resolve()
         if root not in resolved.parents or resolved.suffix != ".txt":
             raise PermissionError("only workspace text fixtures are allowed")
+        if not stat.S_ISREG(resolved.stat().st_mode):
+            raise PermissionError("tool workspace inputs must be regular files")
         with resolved.open("rb") as stream:
             content = stream.read(8193)
         if len(content) > 8192:

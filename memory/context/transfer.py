@@ -53,6 +53,7 @@ class ContextTransferService:
             "important_entities": [],
             "retrieved_memories": packet,
             "relevant_episodes": [],
+            "execution_cautions": [],
             "relevant_experiences": [],
             "relevant_procedures": [],
             "relevant_insights": [],
@@ -128,6 +129,26 @@ class ContextTransferService:
                     except NotFound:
                         continue
                 result[key].append(item)
+                candidate = item[item_key]
+                failed = (
+                    candidate.get("failed_actions", [])
+                    if item_key == "experience"
+                    else candidate.get("known_failure_modes", [])
+                )
+                if failed and len(result["execution_cautions"]) < 4:
+                    result["execution_cautions"].append(
+                        {
+                            item_key + "_id": str(object_id),
+                            "observed_failure_actions": [
+                                value[:160] for value in failed[:3]
+                            ],
+                            "applicability": candidate.get(
+                                "applicability_conditions", []
+                            )[:3],
+                            "summary_is_bounded": True,
+                            "meaning": "Historical failures or exceptions; check current conditions, not a universal prohibition",
+                        }
+                    )
                 if item_key == "experience":
                     for episode_id in item["experience"]["source_episode_ids"][:3]:
                         episode_ids.add(UUID(episode_id))

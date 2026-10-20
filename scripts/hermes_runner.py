@@ -102,7 +102,12 @@ def main():
                 # tools, bypassing its persist_session=False entry-point guard.
                 return None
 
+        allowed = set(request.get("allowed_tools", TOOL_NAMES))
+        if not allowed or not allowed.issubset(TOOL_NAMES):
+            raise RuntimeError("unsupported tool policy")
         for schema in TOOL_SCHEMAS:
+            if schema["name"] not in allowed:
+                continue
 
             def handler(arguments, _name=schema["name"], **kwargs):
                 return json.dumps(
@@ -113,7 +118,7 @@ def main():
         create_custom_toolset(
             "cookieai_pilot",
             "CookieAI broker-controlled pilot tools",
-            tools=sorted(TOOL_NAMES),
+            tools=sorted(allowed),
         )
         agent = BrokeredAgent(
             base_url="http://127.0.0.1:1/v1",
@@ -135,7 +140,7 @@ def main():
             fallback_model=None,
         )
         actual = {tool["function"]["name"] for tool in agent.tools}
-        if actual != TOOL_NAMES:
+        if actual != allowed:
             raise RuntimeError("Hermes tool policy mismatch")
         agent.compression_enabled = False
         result = agent.run_conversation(

@@ -18,6 +18,15 @@ class Worker:
         self.queue = JobQueue(memory.engine, context)
 
     def execute(self, queue, ctx, payload):
+        if queue in {"autonomy.tick", "autonomy.run"}:
+            from memory.autonomy.service import TaskSupervisor
+
+            supervisor = TaskSupervisor(self.memory)
+            return (
+                supervisor.tick(ctx)
+                if queue == "autonomy.tick"
+                else supervisor.process(ctx, UUID(payload["task_id"]))
+            )
         if queue == "memory.agent_turn":
             from memory.agent.service import AgentService
 
@@ -59,6 +68,8 @@ class Worker:
                     except NotFound:
                         continue
                     other = Episode.model_validate(row.payload)
+                    if other.evidence_origin != anchor.evidence_origin:
+                        continue
                     if (
                         structural_similarity(fingerprint(anchor), fingerprint(other))
                         >= 0.65

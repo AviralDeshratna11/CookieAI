@@ -1,5 +1,11 @@
 # Remaining implementation ledger
 
+Subsequent work from committed baseline `29c5d08` is tracked in the
+[continuous autonomy ledger](autonomy-execution-ledger.md), including exact new
+scope, evidence, unresolved work and next executable steps. The counts and
+migration head below are historical; current default regression is 139 passed,
+14 skipped, and prepared source migration head is 0019.
+
 20 October 2026, Asia/Calcutta. Starting commit `ba7a5f3`; clean working tree.
 Local Python 3.11.0. Initial regression: 111 passed, 11 skipped. Docker daemon
 unavailable; PostgreSQL, Redis and hosted migration state were not freshly

@@ -1,0 +1,29 @@
+# Optional isolated execution image. Never used by the default Compose stack.
+FROM python:3.12-slim AS hermes
+WORKDIR /app
+COPY config/hermes.lock.json config/hermes-requirements.lock ./config/
+COPY scripts/setup_hermes.py ./scripts/setup_hermes.py
+RUN python scripts/setup_hermes.py
+
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.lock pyproject.toml ./
+RUN pip install --no-cache-dir -r requirements.lock
+COPY apps ./apps
+COPY memory ./memory
+COPY models ./models
+COPY database ./database
+COPY workers ./workers
+COPY prompts ./prompts
+COPY scripts ./scripts
+COPY config/hermes.lock.json ./config/hermes.lock.json
+COPY alembic.ini ./
+COPY --from=hermes /app/.hermes-runtime /app/.hermes-runtime
+RUN pip install --no-cache-dir --no-deps . && useradd --create-home memory \
+    && mkdir -p /workspace && chown memory:memory /workspace
+ENV MEMORY_HERMES_PYTHON=/app/.hermes-runtime/venv/bin/python \
+    MEMORY_HERMES_SOURCE=/app/.hermes-runtime/source/hermes-agent-1f6efd6eb0ba6b573c73c96d14dff1be4454823d \
+    MEMORY_HERMES_WORKSPACE=/workspace
+USER memory
+EXPOSE 8000
+CMD ["uvicorn", "apps.api.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

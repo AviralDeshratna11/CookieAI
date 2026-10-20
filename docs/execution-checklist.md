@@ -1,5 +1,11 @@
 # Completion execution checklist
 
+Latest pass: [continuous autonomy checkpoint](autonomy-execution-ledger.md),
+[operating contracts](autonomy-operations.md) and
+[exact validation results](autonomy-validation-results.json). Source head is
+0019; hosted database unchanged. Older baseline/deployment results below remain
+historical evidence only.
+
 The subsequent [implementation ledger](implementation-ledger.md) and
 [Hermes acceptance notes](hermes-integration.md) describe local changes after
 `ba7a5f3`. The historical baseline and test counts below are not fresh results.

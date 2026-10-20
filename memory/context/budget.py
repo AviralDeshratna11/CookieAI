@@ -85,7 +85,7 @@ def fit(package, counter, budget, allocation=None):
     # one side of a contradiction as the whole available record.
     arrays = {}
     for key, value in package.items():
-        if key in {"conflicts", "uncertainty"}:
+        if key in {"conflicts", "uncertainty", "execution_cautions"}:
             continue
         if isinstance(value, list):
             arrays[key] = [value]

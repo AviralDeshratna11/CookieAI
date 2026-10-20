@@ -1,5 +1,12 @@
 # Completion status and acceptance boundaries
 
+Current local extension: [continuous autonomy checkpoint](autonomy-execution-ledger.md).
+Approved bounded tasks now run through the existing worker with independent
+verification, event subscriptions, quotas and erasure fencing. Default regression
+is 139 passed/14 skipped. Source migration head is 0019; no hosted migration was
+applied. This supersedes earlier local counts below without closing the remaining
+master requirements or certifying current container availability.
+
 Local follow-up from `ba7a5f3`: an opt-in isolated Hermes pilot, durable sanitized
 execution observations, full prompt accounting and frontier graph edge queries
 are implemented. See [current work and unresolved requirements](implementation-ledger.md)

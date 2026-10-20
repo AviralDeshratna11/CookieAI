@@ -48,6 +48,12 @@ class EventDispatcher:
                     "MEMORY_UPDATED",
                     "MEMORY_CORRECTED",
                 }:
+                    if self.memory.settings.autonomy_enabled:
+                        from memory.autonomy.service import TaskSupervisor
+
+                        TaskSupervisor(self.memory).wake(
+                            self.ctx, UUID(event["event_id"])
+                        )
                     try:
                         memory = self.memory.get(self.ctx, UUID(event["object_id"]))
                     except NotFound:

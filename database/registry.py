@@ -16,5 +16,6 @@ def register_tables():
         "operations_tables",
         "source_tables",
         "cognitive_tables",
+        "autonomy_tables",
     ):
         import_module("database." + name)

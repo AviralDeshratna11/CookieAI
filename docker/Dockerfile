@@ -8,6 +8,7 @@ COPY memory ./memory
 COPY models ./models
 COPY database ./database
 COPY workers ./workers
+COPY scripts ./scripts
 RUN pip install --no-cache-dir --no-deps . && useradd --create-home memory
 COPY alembic.ini ./
 COPY config ./config

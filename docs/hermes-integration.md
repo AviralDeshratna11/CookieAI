@@ -1,5 +1,11 @@
 # Experimental Hermes execution backend
 
+The [approved supervisor operating notes](autonomy-operations.md) describe new
+per-task tool/model budgets, independent verifiers and optional container
+packaging. The compatibility pin below is preserved; the current release has
+not passed replacement gates. Container builds and new live-provider acceptance
+remain unverified. [Current evidence](autonomy-validation-results.json).
+
 Prepared 20 October 2026 (Asia/Calcutta). Implementation baseline: `ba7a5f3`.
 
 CookieAI now has an explicit `backend` selection on assistant turns. The default

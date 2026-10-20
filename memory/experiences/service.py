@@ -108,6 +108,10 @@ class ExperienceService:
                     raise NotFound("episode not found")
                 episodes.append(Episode.model_validate(row.payload))
             signatures = [fingerprint(episode) for episode in episodes]
+            if len({episode.evidence_origin for episode in episodes}) != 1:
+                raise ValueError(
+                    "Real, synthetic and rehearsal experience must remain separate"
+                )
             if any(
                 structural_similarity(signatures[0], signature) < 0.3
                 for signature in signatures[1:]

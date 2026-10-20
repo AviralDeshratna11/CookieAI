@@ -8,6 +8,8 @@ from database.operations_tables import jobs
 from memory.security.identifiers import job_key
 
 MEMORY_KEYS = {
+    "task_id",
+    "goal_id",
     "memory_id",
     "memory_ids",
     "episode_id",
@@ -22,6 +24,7 @@ MEMORY_KEYS = {
 }
 SOURCE_KEYS = {"source_id", "source_ids", "source_message_id", "message_id"}
 NAMESPACE_READERS = {
+    "autonomy.tick",
     "memory.reflect",
     "memory.validate",
     "memory.serendipity",
@@ -105,7 +108,46 @@ def scrub_turns(repo, memory_ids, session_ids):
                 changed = True
         if not changed:
             break
+    scrub_autonomous_tasks(repo, identities, sessions)
     return sessions
+
+
+def scrub_autonomous_tasks(repo, identities, sessions):
+    """Clear task caches before canonical FK cascades and fence in-flight runs."""
+    from uuid import uuid4
+
+    from database.autonomy_tables import runs, tasks
+
+    affected = set()
+    for row in repo.db.execute(
+        select(tasks).where(tasks.c.namespace_id == repo.ctx.namespace_id)
+    ).mappings():
+        context = row["execution_context"]
+        refs = set(row["payload"].get("approved_revisions", {}))
+        if (
+            str(row["id"]) in identities
+            or identities.intersection(refs)
+            or context.get("session_id") in set(map(str, sessions))
+        ):
+            affected.add(row["id"])
+    for row in repo.db.execute(
+        select(runs).where(runs.c.namespace_id == repo.ctx.namespace_id)
+    ).mappings():
+        if identities.intersection(row["payload"].get("context_refs", {})):
+            affected.add(row["task_id"])
+    if affected:
+        repo.db.execute(
+            update(tasks)
+            .where(tasks.c.id.in_(affected))
+            .values(
+                status="CANCELLED", payload={}, execution_context={}, next_run_at=None
+            )
+        )
+        repo.db.execute(
+            update(runs)
+            .where(runs.c.task_id.in_(affected))
+            .values(status="CANCELLED", payload={}, lease_token=uuid4())
+        )
 
 
 def cancel_for_erasure(repo, memory_ids, source_ids, session_ids):

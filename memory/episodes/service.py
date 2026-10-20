@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from uuid import NAMESPACE_URL, UUID, uuid5
 
 from sqlalchemy import insert, select
@@ -10,6 +11,8 @@ from memory.security.auth import NotFound, require_scope
 
 
 class ToolAttempt(StrictModel):
+    observation_id: UUID | None = None
+    sequence: int | None = Field(default=None, ge=0, le=1000)
     tool: str = Field(min_length=1, max_length=200)
     intent: str = Field(min_length=1, max_length=2000)
     action: str = Field(min_length=1, max_length=2000)
@@ -23,6 +26,7 @@ class ToolAttempt(StrictModel):
 
 
 class EpisodeInput(StrictModel):
+    evidence_origin: Literal["REAL", "SYNTHETIC", "REHEARSAL"] = "REAL"
     event_id: UUID | None = None
     title: str = Field(min_length=1, max_length=500)
     trigger: str = Field(min_length=1, max_length=1000)

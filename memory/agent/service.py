@@ -536,13 +536,12 @@ class AgentService:
                         },
                         attempts=[
                             ToolAttempt(
+                                observation_id=UUID(item["event_id"]),
+                                sequence=item["sequence"],
                                 tool=item["tool"],
                                 intent="Execute permitted pilot operation",
                                 action=item["tool"],
-                                parameters={
-                                    "event_id": item["event_id"],
-                                    "sequence": item["sequence"],
-                                },
+                                parameters={},
                                 result="Tool returned successfully"
                                 if item["success"]
                                 else "Tool failed",

@@ -1,5 +1,15 @@
 # CookieAI: project status and remaining work
 
+For the consolidated current overview, start with
+[what is implemented and what remains](implemented-and-remaining.md).
+
+**Latest local checkpoint:** the [continuous autonomy ledger](autonomy-execution-ledger.md)
+and [operating contracts](autonomy-operations.md) cover the new approved task
+supervisor, independent verifiers, event activation, durable budgets, failure
+context and contrastive candidates. Migration 0019 is prepared, not applied to
+the active hosted database. Default regression: **139 passed, 14 skipped**.
+Hermes/autonomy remain opt-in; broad completion and deployment gates remain open.
+
 **Prepared:** 20 October 2026, Asia/Calcutta  
 **Implementation baseline:** commit `09cb35b` on `main`  
 **Repository:** [AviralDeshratna11/CookieAI](https://github.com/AviralDeshratna11/CookieAI)

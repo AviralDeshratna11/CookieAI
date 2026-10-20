@@ -30,12 +30,30 @@ class HermesBackend:
         workspace=None,
         provider=None,
         on_observation=lambda observation: None,
+        allowed_tools=None,
+        on_tool_result=lambda observation, result: None,
+        retain_tool_parameters=False,
+        model_call_limit=None,
+        on_model_request=lambda sequence: None,
     ):
         self.settings = settings
         self.guard = guard
         self.workspace = workspace
         self.provider = provider or Provider(settings)
         self.on_observation = on_observation
+        self.allowed_tools = set(TOOL_NAMES if allowed_tools is None else allowed_tools)
+        if not self.allowed_tools or not self.allowed_tools.issubset(TOOL_NAMES):
+            raise ValueError(
+                "Hermes tool policy is outside the supported broker toolset"
+            )
+        self.on_tool_result = on_tool_result
+        self.retain_tool_parameters = retain_tool_parameters
+        self.model_call_limit = (
+            model_call_limit
+            if model_call_limit is not None
+            else settings.hermes_max_iterations + 1
+        )
+        self.on_model_request = on_model_request
 
     @staticmethod
     def authorize(settings, ctx, retain):
@@ -72,6 +90,7 @@ class HermesBackend:
         )
         workspace = Path(self.workspace or self.settings.hermes_workspace).absolute()
         request = {
+            "allowed_tools": sorted(self.allowed_tools),
             "source": str(source),
             "project": str(PROJECT),
             "run_id": str(run_id),
@@ -166,17 +185,15 @@ class HermesBackend:
                         continue
                     if event.get("event") == "model":
                         usage["model_calls"] += 1
-                        if (
-                            usage["model_calls"]
-                            > self.settings.hermes_max_iterations + 1
-                        ):
+                        if usage["model_calls"] > self.model_call_limit:
                             raise ValueError("Hermes model-call budget exceeded")
                         payload = event["payload"]
                         if payload.get("model") != self.settings.extraction_model:
                             raise ValueError("Hermes model route changed")
                         tools = payload.get("tools", [])
                         if any(
-                            tool["function"]["name"] not in TOOL_NAMES for tool in tools
+                            tool["function"]["name"] not in self.allowed_tools
+                            for tool in tools
                         ):
                             raise ValueError(
                                 "Hermes requested an unauthorized tool schema"
@@ -220,6 +237,7 @@ class HermesBackend:
                                     }
                                 )
                             )
+                        self.on_model_request(usage["model_calls"])
                         result = provider.post("/chat/completions", payload)
                         self.guard()
                         for choice in result.get("choices", []):
@@ -228,7 +246,7 @@ class HermesBackend:
                             ):
                                 if (
                                     call.get("function", {}).get("name")
-                                    not in TOOL_NAMES
+                                    not in self.allowed_tools
                                 ):
                                     raise AccessDenied(
                                         "Model requested a tool outside the pilot policy"
@@ -240,7 +258,7 @@ class HermesBackend:
                         if len(observations) >= 30:
                             raise ValueError("Hermes tool-attempt budget exceeded")
                         tool = event["name"]
-                        if tool not in TOOL_NAMES:
+                        if tool not in self.allowed_tools:
                             raise AccessDenied("Hermes tool outside execution policy")
                         tool_start = utcnow()
                         observation = {
@@ -257,6 +275,14 @@ class HermesBackend:
                             "arguments_retained": False,
                             "output_retained": False,
                         }
+                        if self.retain_tool_parameters:
+                            from memory.autonomy.contracts import ToolStep
+
+                            # Reject arbitrary extra fields before persisting any
+                            # model-supplied parameters in the execution journal.
+                            approved = ToolStep(tool=tool, arguments=event["arguments"])
+                            observation["arguments"] = approved.arguments
+                            observation["arguments_retained"] = True
                         self.on_observation(dict(observation))
                         try:
                             result = execute_tool(tool, event["arguments"], workspace)
@@ -273,6 +299,7 @@ class HermesBackend:
                             phase="FINISHED",
                         )
                         self.on_observation(dict(observation))
+                        self.on_tool_result(dict(observation), result)
                         observations.append(observation)
                         send(result)
                     elif event.get("event") == "result":

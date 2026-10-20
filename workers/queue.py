@@ -11,7 +11,7 @@ from memory.schemas import utcnow
 from memory.security.identifiers import job_key
 
 QUEUES = set(
-    "memory.extract memory.embed memory.graph memory.episode memory.experience memory.consolidate memory.reflect memory.serendipity memory.validate memory.decay memory.reindex memory.delete memory.summarize memory.agent_turn DREAMER".split()
+    "memory.extract memory.embed memory.graph memory.episode memory.experience memory.consolidate memory.reflect memory.serendipity memory.validate memory.decay memory.reindex memory.delete memory.summarize memory.agent_turn autonomy.tick autonomy.run DREAMER".split()
 )
 
 

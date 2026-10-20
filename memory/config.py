@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     reflection_backend: str = "rules"
     general_discovery_enabled: bool = False
     structured_discovery_enabled: bool = True
+    contrastive_discovery_enabled: bool = True
     candidate_retention_days: int = Field(default=30, ge=1, le=365)
     reflection_model: str | None = None
     critic_model: str | None = None
@@ -65,6 +66,12 @@ class Settings(BaseSettings):
     hermes_max_iterations: int = Field(default=6, ge=1, le=12)
     hermes_allowed_agents: list[str] = Field(default_factory=list)
     hermes_workspace: Path = Path(".hermes-runtime/workspace")
+    autonomy_enabled: bool = False
+    autonomy_allowed_agents: list[str] = Field(default_factory=list)
+    autonomy_interval_seconds: int = Field(default=30, ge=10, le=3600)
+    autonomy_batch_size: int = Field(default=20, ge=1, le=100)
+    autonomy_daily_tool_calls: int = Field(default=100, ge=0, le=10000)
+    autonomy_daily_model_calls: int = Field(default=50, ge=0, le=1000)
 
     @field_validator("context_tokenizer_file", mode="before")
     @classmethod

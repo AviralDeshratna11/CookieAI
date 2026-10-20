@@ -168,6 +168,30 @@ def create_app(settings=None, service=None, auth=None):
     from memory.agent.service import AgentService, TurnFeedback, TurnInput
 
     agent_service = AgentService(service)
+    from memory.autonomy.contracts import TaskControl, TaskInput
+    from memory.autonomy.service import TaskSupervisor
+
+    supervisor = TaskSupervisor(service)
+
+    @app.post("/v1/tasks", status_code=202)
+    def task_create(body: TaskInput, ctx=Depends(write)):
+        return supervisor.create(ctx, body)
+
+    @app.get("/v1/tasks")
+    def task_list(after: UUID | None = None, limit: int = 20, ctx=Depends(read)):
+        return supervisor.list(ctx, after=after, limit=limit)
+
+    @app.get("/v1/tasks/status")
+    def task_status(ctx=Depends(read)):
+        return supervisor.status(ctx)
+
+    @app.get("/v1/tasks/{task_id}")
+    def task_get(task_id: UUID, ctx=Depends(read)):
+        return supervisor.get(ctx, task_id)
+
+    @app.post("/v1/tasks/{task_id}/control")
+    def task_control(task_id: UUID, body: TaskControl, ctx=Depends(write)):
+        return supervisor.control(ctx, task_id, body)
 
     @app.get("/v1/operations/status")
     def operation_status(ctx=Depends(read)):

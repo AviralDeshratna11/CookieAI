@@ -1,5 +1,12 @@
 # Phase 12 operational hardening
 
+Latest local extension: [approved continuous execution](autonomy-operations.md)
+and [requirement/evidence checkpoint](autonomy-execution-ledger.md). Migration
+0019 adds task/run journals, event receipts and durable execution budgets. Worker
+scheduling, independent verifiers and erasure fencing are fixture-tested;
+production database/container recovery acceptance remains open. Counts below
+describe earlier historical gates.
+
 Migrations 0010 and 0011 add durable jobs, retrieval/access events, tenant policies and forced PostgreSQL RLS. A non-superuser test proves default-deny and namespace isolation for memory and vector tables. Domain mutations enforce their required scopes. Derived records and cross-agent transfer preserve evidence permissions.
 
 Migration 0012 stores raw evidence separately from the bounded rolling context. Erasure clears source-session raw content, and mutation-time lease checks prevent canceled jobs from restoring deleted input. The completion pass adds migration 0013, real embeddings, persistent discovery workers and expanded acceptance checks. The current suite has 92 passing tests on the host and in Python 3.12 Docker; see verification.md for exact scope.

@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-20",
+  "baseline_commit": "29c5d08",
+  "claim": "Bounded local implementation checkpoint; broad request remains partial",
+  "default_regression": {
+    "command": ".venv/Scripts/python.exe -m pytest -q -rs",
+    "passed": 139,
+    "skipped": 14,
+    "seconds": 9.27,
+    "warnings": ["Existing Starlette/httpx TestClient deprecation"],
+    "skip_groups": {
+      "optional_hermes_runtime_not_selected": 3,
+      "redis_not_configured": 3,
+      "postgresql_not_configured": 7,
+      "opt_in_live_provider_not_selected": 1
+    },
+    "new_tests": {"passed": 19, "optional_runtime_skipped": 1},
+    "evidence_type": "Deterministic SQLite/hash-embedding fixtures, no production quality claim"
+  },
+  "selected_real_engine_regression": {
+    "command": "With COOKIEAI_HERMES_PYTHON/SOURCE selected: .venv/Scripts/python.exe -m pytest tests/integration/test_hermes_execution.py tests/integration/test_autonomy.py tests/integration/test_contrastive.py -q",
+    "passed": 27,
+    "skipped": 0,
+    "seconds": 102.58,
+    "engine": "Actual pinned isolated Hermes source and SDK",
+    "model": "Scripted deterministic responses; not a live model",
+    "includes": ["Per-task tool subset", "Independently verified supervisor outcome", "Durable daily model/tool charging", "Existing engine learning and later context reuse"],
+    "framework_quality_advantage_established": false
+  },
+  "static_checks": {
+    "repository_ruff_lint": "passed",
+    "git_diff_check": "passed; CRLF normalization notices only",
+    "alembic_0018_to_0019_postgres_offline_sql": "passed; not executed against a database",
+    "compose_hermes_overlay_config": "passed; no daemon required"
+  },
+  "not_executed": [
+    "Hosted migrations or application deployment",
+    "Linux image build and container startup",
+    "PostgreSQL RLS/concurrency acceptance for new tables",
+    "Actual PostgreSQL/Redis/service/OS interruption drills",
+    "New supervisor live-provider smoke or representative model comparison",
+    "Longitudinal memory utility, retrieval quality or soak acceptance",
+    "Current Hermes release upgrade and retention compatibility gates"
+  ],
+  "external_limit": "Docker Desktop Linux engine unavailable, including escalated daemon check",
+  "paid_services_enabled": false,
+  "published_or_pushed": false,
+  "active_hosted_database_changed": false
+}

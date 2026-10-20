@@ -1,0 +1,25 @@
+# Opt-in overlay: docker compose -f docker-compose.yml -f docker-compose.hermes.yml ...
+# Requires explicit JSON agent allowlists. Still disabled unless enabled below.
+services:
+  api:
+    build:
+      dockerfile: docker/Dockerfile.hermes
+    environment: &autonomy_environment
+      MEMORY_AUTONOMY_ENABLED: ${MEMORY_AUTONOMY_ENABLED:-false}
+      MEMORY_AUTONOMY_ALLOWED_AGENTS: ${MEMORY_AUTONOMY_ALLOWED_AGENTS:-[]}
+      MEMORY_AUTONOMY_INTERVAL_SECONDS: ${MEMORY_AUTONOMY_INTERVAL_SECONDS:-30}
+      MEMORY_AUTONOMY_DAILY_TOOL_CALLS: ${MEMORY_AUTONOMY_DAILY_TOOL_CALLS:-100}
+      MEMORY_AUTONOMY_DAILY_MODEL_CALLS: ${MEMORY_AUTONOMY_DAILY_MODEL_CALLS:-50}
+      MEMORY_HERMES_ENABLED: ${MEMORY_HERMES_ENABLED:-false}
+      MEMORY_HERMES_ALLOWED_AGENTS: ${MEMORY_HERMES_ALLOWED_AGENTS:-[]}
+    volumes:
+      - autonomy_workspace:/workspace
+  worker:
+    build:
+      dockerfile: docker/Dockerfile.hermes
+    environment:
+      <<: *autonomy_environment
+    volumes:
+      - autonomy_workspace:/workspace
+volumes:
+  autonomy_workspace:

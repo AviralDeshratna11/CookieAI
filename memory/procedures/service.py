@@ -107,6 +107,10 @@ class ProcedureService:
                     )
                 ).scalar_one()
                 episode = Episode.model_validate(payload)
+                if episode.evidence_origin != "REAL":
+                    raise ValueError(
+                        "Synthetic and rehearsal episodes cannot activate real-world procedures"
+                    )
                 producer = episode.event_id or episode.episode_id
                 if producer not in producers:
                     producers.add(producer)

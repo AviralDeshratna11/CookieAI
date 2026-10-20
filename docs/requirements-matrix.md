@@ -1,5 +1,9 @@
 # Master requirements traceability matrix
 
+Latest supplement: [continuous autonomy requirement/evidence checkpoint](autonomy-execution-ledger.md).
+Original clause statuses below are retained; new supervisor tests do not promote
+unverified master clauses automatically.
+
 Follow-up evidence: [implementation ledger](implementation-ledger.md) and
 [Hermes integration](hermes-integration.md) cover execution, prompt budgets and
 frontier graph queries. Scope remains partial; original clause statuses are

@@ -57,6 +57,8 @@ def main():
         "DREAMER": settings.dreamer_interval_seconds,
         "memory.serendipity": settings.serendipity_interval_seconds,
     }
+    if settings.autonomy_enabled:
+        schedules["autonomy.tick"] = settings.autonomy_interval_seconds
     stopping = Event()
     for signum in (signal.SIGINT, signal.SIGTERM):
         signal.signal(signum, lambda *_: stopping.set())

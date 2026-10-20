@@ -25,6 +25,8 @@ SENSITIVE_TERMS = {
 
 
 def feature_projection(repo, episode):
+    if episode.evidence_origin != "REAL":
+        return
     combinations = {}
     for attempt in episode.attempts:
         description = json.dumps(
@@ -149,6 +151,10 @@ class ReflectionEngine:
                     {(item.memory_id, item.revision) for item in evidence},
                 )
         results = self._run(ctx, max_features, reviews)
+        if self.memory.settings.contrastive_discovery_enabled:
+            from memory.reflection.contrastive import ContrastiveDiscovery
+
+            results.extend(ContrastiveDiscovery(self.memory).run(ctx))
         if self.memory.settings.structured_discovery_enabled:
             from memory.reflection.structured import StructuredDiscovery
 
