@@ -1,0 +1,48 @@
+{
+  "baseline_commit": "ba7a5f328f3f9d161786d0edad945c6705e10b9c",
+  "prepared_date": "2026-10-20",
+  "timezone": "Asia/Calcutta",
+  "python": "3.11.0",
+  "baseline": {
+    "passed": 111,
+    "skipped": 11
+  },
+  "final": {
+    "passed": 122,
+    "skipped": 11,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 89.648
+  },
+  "scope": "SQLite/hash embedding fixtures, real pinned Hermes engine with scripted model and SDK transport; live NVIDIA smoke recorded separately",
+  "skipped_tests": [
+    "tests.integration.test_dispatcher::test_redis_outbox_to_authorized_projection_worker",
+    "tests.integration.test_distributed_limits::test_ingress_budget_is_shared_and_atomic_between_instances",
+    "tests.integration.test_live_http::test_live_server_postgres_flow",
+    "tests.integration.test_postgres::test_live_nvidia_assistant_outcome_and_later_procedure",
+    "tests.integration.test_postgres::test_external_migration_transaction_rolls_back_schema_and_data",
+    "tests.integration.test_postgres::test_real_pgvector_migration_transactions_and_concurrent_dedup",
+    "tests.integration.test_postgres::test_real_2048_dimension_candidate_search",
+    "tests.integration.test_postgres::test_real_postgres_model_failure_rolls_back",
+    "tests.integration.test_postgres::test_non_superuser_rls_isolation",
+    "tests.integration.test_postgres_discovery::test_postgres_finding_revision_and_dependent_erasure",
+    "tests.integration.test_redis::test_redis_working_references_do_not_resurrect_deleted_content"
+  ],
+  "checks": {
+    "ruff": "passed",
+    "format": "passed",
+    "whitespace": "passed",
+    "migration_0018": "offline SQL generated only; not applied"
+  },
+  "docker_available": false,
+  "hosted_database_modified": false,
+  "hermes_enabled_by_default": false,
+  "implementation_sha256": {
+    "memory/agent/service.py": "bf338e3d99b3ee4ccb12e449de3294c042cedf6ff0f583a5a3507dc8347f925a",
+    "memory/agent/hermes.py": "a25c68f036a4cf0acff91a64a721611e6833811abe368b72318ec3e2f005f68e",
+    "memory/agent/hermes_tools.py": "eb096efcec0402e48d495c7a1ff1ebb5ee702ba5a87386d48c0045fd8dc0ec73",
+    "scripts/hermes_runner.py": "a0cac74216b9069dc83e4b14fd3a2df0fa32db688ade83fed370bce31d7d047e",
+    "memory/context/budget.py": "c7becff6e3ff577c1ec6d6092492745943ddbc7d16a48a20dc480e4437525614",
+    "memory/graph/service.py": "af3ab822ea66be92ddf621ee5fea0505e255429cfc28f1ec9903e83d10768736"
+  }
+}

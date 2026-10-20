@@ -4,6 +4,16 @@
 **Implementation baseline:** commit `09cb35b` on `main`  
 **Repository:** [AviralDeshratna11/CookieAI](https://github.com/AviralDeshratna11/CookieAI)
 
+**Subsequent local implementation:** an optional isolated Hermes execution pilot,
+full assistant prompt accounting and frontier-based graph edge retrieval have
+been added after baseline `ba7a5f3`. See the [implementation ledger](implementation-ledger.md)
+and [Hermes acceptance/operating notes](hermes-integration.md). Hermes remains
+disabled by default; migration 0018 is prepared and has not been applied to the
+active hosted database. The remaining requirements below still apply.
+The follow-up local suite passed 122 tests with 11 skipped; a separate synthetic
+live NVIDIA/Hermes smoke passed. These results do not replace the production and
+requirement-level acceptance gaps below.
+
 This document distinguishes implemented behavior, recorded verification, partial capabilities and remaining work. It is based on source inspection and existing acceptance reports, not a fresh test run or a new uptime check. The implementation baseline was pushed to GitHub; this document is a subsequent local addition.
 
 ## 1. Overall status

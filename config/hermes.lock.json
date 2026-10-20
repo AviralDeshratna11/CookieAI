@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/NousResearch/hermes-agent",
+  "commit": "1f6efd6eb0ba6b573c73c96d14dff1be4454823d",
+  "release": "v2026.4.3 / 0.7.0",
+  "license": "MIT",
+  "scope": "experimental Python 3.11 pilot; not a current-release security attestation",
+  "interface_sha256": {
+    "run_agent.py": "e790ce58bd381b26264fbfb47562d62fd1c3fe33ff334d834e78639d64e80a5a",
+    "model_tools.py": "72a4e7f7ff229043e4bde84fb0951b1e8bcac03aa453ee8c5fde3672979ce4f3",
+    "toolsets.py": "74864efb0f16559043c2b64dec85393bdb283ac1b26c247490155ae107e8ccbb",
+    "tools/registry.py": "d5a45a9f69d40d1da452228b33e715f4c563cbc66587c55d7b7b7e56c5bd04df",
+    "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6"
+  },
+  "archive_sha256": "fd9b5d1adee02756b582c22369e703a8911d86231947b152c6f6b94485a027df"
+}

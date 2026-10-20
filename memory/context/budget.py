@@ -42,6 +42,28 @@ class ContextBudgetExceeded(ValueError):
     pass
 
 
+def check_prompt(messages, counter, limit, output_tokens, template_reserve, tools=None):
+    """Fail before generation; never silently drop conflicts or tool observations.
+
+    The template reserve is explicit because serialized messages cannot measure a
+    provider's private chat template. This is an application bound, not a claim
+    of exact provider token accounting.
+    """
+    inputs = counter.count({"messages": messages, "tools": tools or []})
+    total = inputs + output_tokens + template_reserve
+    if total > limit:
+        raise ContextBudgetExceeded("Full assistant prompt and output exceed the limit")
+    return {
+        "input_tokens": inputs,
+        "reserved_output_tokens": output_tokens,
+        "template_reserve_tokens": template_reserve,
+        "total_reserved_tokens": total,
+        "limit": limit,
+        "counter": counter.mode,
+        "tokenizer_sha256": counter.artifact_sha256,
+    }
+
+
 DEFAULT_ALLOCATION = {
     "recent_messages": 0.25,
     "retrieved_memories": 0.25,

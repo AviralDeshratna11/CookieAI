@@ -1,7 +1,7 @@
 from typing import Literal
 from uuid import UUID, uuid4
 
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, or_, select
 
 from database import graph_tables as g
 from database import hybrid_tables as h
@@ -185,31 +185,38 @@ def activation(
         ).scalars()
     )
     visible_nodes = visible_memories | visible_entities
-    rows = list(
-        repo.db.execute(
-            select(g.edges).where(g.edges.c.namespace_id == repo.ctx.namespace_id)
-        ).mappings()
-    )
-    allowed = [
-        row
-        for row in rows
-        if row["source_id"] in visible_nodes
-        and row["target_id"] in visible_nodes
-        and all(
-            UUID(item) in visible_memories
-            for item in row["payload"]["source_memory_ids"]
-        )
-    ]
     activated = {key: score for key, score in seeds.items() if key in visible_nodes}
     frontier = dict(activated)
     visited = set()
     for _ in range(min(3, max(0, max_hops))):
+        # Fetch only incident edges for this hop. Partition the frontier to stay
+        # below database parameter limits; do not scan every namespace edge.
+        edges = {}
+        frontier_ids = sorted(set(frontier) - visited, key=str)
+        for offset in range(0, len(frontier_ids), 200):
+            batch = frontier_ids[offset : offset + 200]
+            rows = repo.db.execute(
+                select(g.edges).where(
+                    g.edges.c.namespace_id == repo.ctx.namespace_id,
+                    or_(g.edges.c.source_id.in_(batch), g.edges.c.target_id.in_(batch)),
+                )
+            ).mappings()
+            for row in rows:
+                if (
+                    row["source_id"] in visible_nodes
+                    and row["target_id"] in visible_nodes
+                    and all(
+                        UUID(item) in visible_memories
+                        for item in row["payload"]["source_memory_ids"]
+                    )
+                ):
+                    edges[row["id"]] = row
         next_frontier = {}
         for current, score in frontier.items():
             if current in visited:
                 continue
             visited.add(current)
-            for edge in allowed:
+            for edge in edges.values():
                 if edge["source_id"] == current:
                     target = edge["target_id"]
                 elif edge["target_id"] == current:

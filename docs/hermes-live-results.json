@@ -1,0 +1,58 @@
+{
+  "synthetic": true,
+  "scope": "One live smoke scenario; not representative quality evidence",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b",
+  "assistant": {
+    "latency_ms": 2436.999999999898,
+    "answer": "I cannot access the file `quote.txt` from the approved tool workspace because I don't have the ability to read files directly. The available tools don't include a file reading function, and the `cookieai_calculate` tool only performs mathematical calculations.\n\nTo proceed, I would need you to provide the contents of `quote.txt` (specifically the values for \"units\" and \"unit_cost\"), or if you have access to the file, you could read it and share the relevant numbers with me. Once you provide those values, I can use the `cookieai_calculate` tool to compute the total.",
+    "can_access_fixture": false
+  },
+  "hermes": {
+    "backend": "hermes",
+    "run_id": "8afa11a0-1f32-4344-a960-c5c25bd387c5",
+    "status": "COMPLETED",
+    "answer": "Total: 94.25",
+    "task_success": null,
+    "observations": [
+      {
+        "event_id": "759a02b9-36df-56ce-990e-1bd5febe4831",
+        "sequence": 0,
+        "tool": "cookieai_read_text",
+        "started_at": "2026-10-20T06:25:35.612559+00:00",
+        "ended_at": "2026-10-20T06:25:35.613564+00:00",
+        "success": true,
+        "error_class": null,
+        "arguments_retained": false,
+        "output_retained": false
+      },
+      {
+        "event_id": "59ba875d-d318-5045-b273-19195d403209",
+        "sequence": 1,
+        "tool": "cookieai_calculate",
+        "started_at": "2026-10-20T06:25:36.699207+00:00",
+        "ended_at": "2026-10-20T06:25:36.699207+00:00",
+        "success": true,
+        "error_class": null,
+        "arguments_retained": false,
+        "output_retained": false
+      }
+    ],
+    "usage": {
+      "model_calls": 3,
+      "prompt_tokens": 2171,
+      "completion_tokens": 71,
+      "last_prompt_budget": {
+        "input_tokens": 728,
+        "reserved_output_tokens": 512,
+        "template_reserve_tokens": 512,
+        "total_reserved_tokens": 1752,
+        "limit": 32768,
+        "counter": "model_tokenizer",
+        "tokenizer_sha256": "623c34567aebb18582765289fbe23d901c62704d6518d71866e0e58db892b5b7"
+      }
+    },
+    "latency_ms": 19266.000000000076
+  },
+  "scenario_passed": true,
+  "recommendation": "Keep opt-in; representative benefit and operations evaluation remains required"
+}

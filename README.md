@@ -2,6 +2,9 @@
 
 Detailed current project status: [what is implemented, verified, partial and still left](docs/project-status-and-roadmap.md), prepared 20 October 2026.
 
+Experimental opt-in execution: [Hermes setup, evidence and limits](docs/hermes-integration.md).
+Current implementation work and remaining requirements: [implementation ledger](docs/implementation-ledger.md).
+
 Current memory/assistant implementation and test instructions: [memory loop acceptance](docs/memory-loop-acceptance.md). The full master specification remains partially unverified; see the residual-gap list in that report.
 
 

@@ -50,3 +50,37 @@ def test_correlation_cannot_become_causation(service, ctx):
                 source_memory_ids=[left.memory_id],
             ),
         )
+
+
+def test_activation_queries_only_current_frontier(service, ctx, engine):
+    from sqlalchemy import event
+
+    left = service.create(ctx, MemoryCreate(text="Frontier A"))
+    right = service.create(ctx, MemoryCreate(text="Frontier B"))
+    graph = GraphService(service)
+    graph.connect(
+        ctx,
+        EdgeProposal(
+            source_id=left.memory_id,
+            target_id=right.memory_id,
+            relationship_type="RELATED_TO",
+            source_memory_ids=[left.memory_id],
+            strength=1,
+        ),
+    )
+    statements = []
+
+    def capture(connection, cursor, statement, parameters, context, executemany):
+        if "FROM graph_edges" in statement:
+            statements.append(statement)
+
+    event.listen(engine, "before_cursor_execute", capture)
+    try:
+        result = graph.recall(ctx, {right.memory_id: 1})
+    finally:
+        event.remove(engine, "before_cursor_execute", capture)
+    assert result[left.memory_id] == pytest.approx(0.55)
+    assert statements and all(
+        "graph_edges.source_id IN" in sql and "graph_edges.target_id IN" in sql
+        for sql in statements
+    )

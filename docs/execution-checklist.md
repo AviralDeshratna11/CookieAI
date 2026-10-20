@@ -1,5 +1,9 @@
 # Completion execution checklist
 
+The subsequent [implementation ledger](implementation-ledger.md) and
+[Hermes acceptance notes](hermes-integration.md) describe local changes after
+`ba7a5f3`. The historical baseline and test counts below are not fresh results.
+
 Sources read: original 108-section master prompt, full MEM0 guide including five diagrams, earlier completion request and latest execution request. Existing Python stack, Supabase and NVIDIA providers remain in place. No public deployment or GitHub push is authorized by this request.
 
 Baseline: clean main at a11c32c; 104 tests pass with isolated local PostgreSQL schemas and Redis database 15. Supabase application connection uses TLS without superuser/RLS bypass. Running worker logs show reflection completion, not only a heartbeat. Active model space remains Nemotron 3 Embed 1B / 2048 dimensions.

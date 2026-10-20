@@ -1,5 +1,14 @@
 # Persistent Agent Memory System Architecture
 
+Current provider configuration is direct NVIDIA Nemotron Ultra generation and
+Nemotron 3 Embed 1B (2048 dimensions), with canonical PostgreSQL on Supabase.
+Historical Nomic descriptions below refer to earlier implementation stages.
+The optional [Hermes execution adapter](docs/hermes-integration.md) runs outside
+the API environment and brokers model/tool operations through CookieAI. CookieAI
+retains canonical memory, authorization and background learning. The default
+assistant remains available. [Current gaps](docs/implementation-ledger.md) remain
+explicit; adding an execution host does not complete the master specification.
+
 The latest additions are dependency-scoped job invalidation, a shared revision-aware finding lifecycle, structured discovery, persistent ACL-partitioned continuity snapshots, and durable assistant turns with observed outcome feedback. See [the implementation and acceptance report](docs/memory-loop-acceptance.md) for current behavior and limits. PostgreSQL canonical data remains on Supabase; API/worker/Redis remain local Docker.
 
 

@@ -262,6 +262,70 @@
         }
       }
     },
+    "/v1/agent/turn/{turn_id}/cancel": {
+      "post": {
+        "summary": "Agent Turn Cancel",
+        "operationId": "agent_turn_cancel_v1_agent_turn__turn_id__cancel_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "turn_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Turn Id"
+            }
+          },
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/context/continuity": {
       "get": {
         "summary": "Continuity Get",
@@ -5296,6 +5360,15 @@
             "minimum": 1000.0,
             "title": "Token Budget",
             "default": 8000
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "assistant",
+              "hermes"
+            ],
+            "title": "Backend",
+            "default": "assistant"
           }
         },
         "additionalProperties": false,

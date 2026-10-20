@@ -35,4 +35,7 @@ backups/
 *.db
 *.egg-info/
 test-results*.xml
+.hermes-source/
+.hermes-review/
+.hermes-runtime/
 

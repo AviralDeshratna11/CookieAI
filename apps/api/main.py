@@ -188,6 +188,10 @@ def create_app(settings=None, service=None, auth=None):
     def agent_turn_feedback(turn_id: UUID, body: TurnFeedback, ctx=Depends(write)):
         return agent_service.feedback(ctx, turn_id, body)
 
+    @app.post("/v1/agent/turn/{turn_id}/cancel")
+    def agent_turn_cancel(turn_id: UUID, ctx=Depends(write)):
+        return agent_service.cancel(ctx, turn_id)
+
     @app.get("/v1/context/continuity")
     def continuity_get(ctx=Depends(read)):
         from memory.context.continuity import ContinuityService

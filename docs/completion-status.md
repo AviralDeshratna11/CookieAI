@@ -1,5 +1,11 @@
 # Completion status and acceptance boundaries
 
+Local follow-up from `ba7a5f3`: an opt-in isolated Hermes pilot, durable sanitized
+execution observations, full prompt accounting and frontier graph edge queries
+are implemented. See [current work and unresolved requirements](implementation-ledger.md)
+and [Hermes operating/acceptance boundaries](hermes-integration.md). These changes
+do not establish full specification completion or a hosted deployment.
+
 Latest execution update: the assistant recall/outcome/procedure loop passed a bounded real NVIDIA acceptance test against an isolated PostgreSQL schema. Dependency-scoped forgetting, finding revision, continuity, token budgets and worker recovery have new regression coverage. [Current implementation, evidence and residual requirements](memory-loop-acceptance.md) supersedes the older completion-pass details below. Full master-specification acceptance is still partial.
 
 

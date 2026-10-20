@@ -1,4 +1,13 @@
-from sqlalchemy import JSON, Column, ForeignKey, String, Table, UniqueConstraint, Uuid
+from sqlalchemy import (
+    JSON,
+    Column,
+    ForeignKey,
+    Index,
+    String,
+    Table,
+    UniqueConstraint,
+    Uuid,
+)
 
 from database.tables import metadata
 
@@ -47,3 +56,7 @@ edge_evidence = Table(
     ),
 )
 GRAPH_TABLES = [nodes, edges, edge_evidence]
+
+# The source-leading unique constraint supports forward adjacency; reverse
+# traversal needs its own namespace/target lookup.
+Index("ix_graph_edges_namespace_target", edges.c.namespace_id, edges.c.target_id)

@@ -13,6 +13,9 @@ def main():
     parser.add_argument("--message")
     parser.add_argument("--session", default=str(uuid4()))
     parser.add_argument("--wait-seconds", type=int, default=300)
+    parser.add_argument(
+        "--backend", choices=["assistant", "hermes"], default="assistant"
+    )
     args = parser.parse_args()
     env = dotenv_values(".env")
     with httpx.Client(
@@ -31,7 +34,11 @@ def main():
                 break
             response = client.post(
                 "/v1/agent/turn",
-                json={"message": message, "idempotency_key": uuid4().hex},
+                json={
+                    "message": message,
+                    "idempotency_key": uuid4().hex,
+                    "backend": args.backend,
+                },
             )
             response.raise_for_status()
             identity = response.json()["turn_id"]

@@ -55,6 +55,16 @@ class Settings(BaseSettings):
     model_response_bytes: int = Field(default=262144, ge=1024, le=1048576)
     max_memory_tokens: int = Field(default=8000, ge=1000, le=128000)
     context_tokenizer_file: Path | None = None
+    assistant_prompt_tokens: int = Field(default=32768, ge=4096, le=262144)
+    assistant_output_tokens: int = Field(default=2000, ge=128, le=16000)
+    assistant_template_reserve_tokens: int = Field(default=512, ge=128, le=8192)
+    hermes_enabled: bool = False
+    hermes_python: Path | None = None
+    hermes_source: Path | None = None
+    hermes_timeout_seconds: int = Field(default=120, ge=5, le=300)
+    hermes_max_iterations: int = Field(default=6, ge=1, le=12)
+    hermes_allowed_agents: list[str] = Field(default_factory=list)
+    hermes_workspace: Path = Path(".hermes-runtime/workspace")
 
     @field_validator("context_tokenizer_file", mode="before")
     @classmethod

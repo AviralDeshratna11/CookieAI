@@ -1,5 +1,10 @@
 # Master requirements traceability matrix
 
+Follow-up evidence: [implementation ledger](implementation-ledger.md) and
+[Hermes integration](hermes-integration.md) cover execution, prompt budgets and
+frontier graph queries. Scope remains partial; original clause statuses are
+preserved until a manual requirement-specific acceptance review is completed.
+
 Execution evidence supplement: [memory-loop-acceptance.md](memory-loop-acceptance.md) maps the latest requested capabilities to code, tests and residual boundaries. All original sections and clause groups below remain applicable. No clause is promoted from unverified solely because its related endpoint or test exists. Shared additions cover finding revision, scoped erasure, continuity, context budgets, assistant outcomes, ordered procedures and bounded structured discovery; representative accuracy, enterprise/modality requirements and sustained operations remain partial.
 
 
