@@ -202,6 +202,9 @@ class SQLMemoryRepository:
             memory.epistemic_type.value,
             sorted(map(str, memory.provenance_ids)),
         ]
+        # Keep historical cloud-approved ACL hashes stable.
+        if memory.disclosure == "LOCAL_ONLY":
+            acl.append("LOCAL_ONLY")
         if memory.type.value in {"EPISODIC", "OBSERVATION"}:
             acl.extend([str(memory.source_id), memory.observed_at.isoformat()])
         return hashlib.sha256(json.dumps(acl).encode()).hexdigest()
@@ -450,6 +453,9 @@ class SQLMemoryRepository:
             )
         source_messages = set()
         source_sessions = set()
+        from memory.autonomy.artifacts import erase_files
+
+        erase_files(self, removed)
         from memory.graph.service import remove
 
         remove(self, list(removed))

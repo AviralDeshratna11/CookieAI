@@ -22,6 +22,9 @@ def evidence_policy(evidence):
     if allowed is not None and not allowed:
         raise ValueError("evidence has no common agent authorization")
     return dict(
+        disclosure="LOCAL_ONLY"
+        if any(memory.disclosure == "LOCAL_ONLY" for memory in evidence)
+        else "APPROVED_CLOUD",
         allowed_agent_ids=list(allowed or []),
         allowed_project_ids=list(projects or []),
         privacy_class=max(

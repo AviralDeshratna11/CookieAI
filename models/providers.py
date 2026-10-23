@@ -44,6 +44,9 @@ class Provider:
         self.api_key = settings.provider_api_key
 
     def post(self, endpoint, payload):
+        from memory.security.disclosure import enforce
+
+        enforce(self.settings, self.base_url)
         if (
             endpoint == "/chat/completions"
             and self.settings.provider_enable_thinking is not None

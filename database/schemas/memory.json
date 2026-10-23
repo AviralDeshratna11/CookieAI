@@ -105,6 +105,15 @@
   },
   "additionalProperties": false,
   "properties": {
+    "disclosure": {
+      "default": "APPROVED_CLOUD",
+      "enum": [
+        "APPROVED_CLOUD",
+        "LOCAL_ONLY"
+      ],
+      "title": "Disclosure",
+      "type": "string"
+    },
     "text": {
       "maxLength": 16000,
       "minLength": 1,

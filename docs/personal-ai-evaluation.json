@@ -1,0 +1,72 @@
+{
+  "evidence_kind": "SYNTHETIC deterministic contract ablation",
+  "sample_size": 8,
+  "baseline": "Unconditional reuse after candidate selection; no applicability gates",
+  "baseline_incorrect_reuses": 4,
+  "gated_incorrect_reuses": 0,
+  "gated_correct_acceptances": 4,
+  "limitations": [
+    "No model inference",
+    "No statistical significance",
+    "Does not establish retrieval, induction, reasoning or real-world skill quality",
+    "Live same-model retrieval-versus-skills comparison deferred until provider setup"
+  ],
+  "cases": [
+    {
+      "case": "Beacon",
+      "expected_applicable": true,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": true,
+      "decision": "applicable"
+    },
+    {
+      "case": "Orchard",
+      "expected_applicable": true,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": true,
+      "decision": "applicable"
+    },
+    {
+      "case": "Harbor",
+      "expected_applicable": true,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": true,
+      "decision": "applicable"
+    },
+    {
+      "case": "Maple",
+      "expected_applicable": true,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": true,
+      "decision": "applicable"
+    },
+    {
+      "case": "No next action",
+      "expected_applicable": false,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": false,
+      "decision": "uncertain"
+    },
+    {
+      "case": "No decision",
+      "expected_applicable": false,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": false,
+      "decision": "uncertain"
+    },
+    {
+      "case": "Explicit exception",
+      "expected_applicable": false,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": false,
+      "decision": "incompatible"
+    },
+    {
+      "case": "Stale evidence",
+      "expected_applicable": false,
+      "baseline_unconditional_reuse": true,
+      "gated_reuse": false,
+      "decision": "incompatible"
+    }
+  ]
+}

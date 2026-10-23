@@ -23,6 +23,7 @@ include = ["memory*", "models*", "database*", "apps*", "workers*", "prompts*"]
 
 [tool.setuptools.package-data]
 prompts = ["*.txt"]
+"apps.api" = ["static/*.html", "static/*.css", "static/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

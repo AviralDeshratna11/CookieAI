@@ -10,6 +10,7 @@ COPY database ./database
 COPY workers ./workers
 COPY scripts ./scripts
 RUN pip install --no-cache-dir --no-deps . && useradd --create-home memory
+RUN mkdir -p /workspace && chown memory:memory /workspace
 COPY alembic.ini ./
 COPY config ./config
 COPY prompts ./prompts

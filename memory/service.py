@@ -18,7 +18,7 @@ from memory.schemas import (
     SearchHit,
     utcnow,
 )
-from memory.security.auth import Conflict, NotFound
+from memory.security.auth import Conflict, NotFound, require_scope
 from models.providers import validate_vector
 
 
@@ -66,6 +66,22 @@ class MemoryService:
         return load_policy(tenant=tenant)
 
     def _create(self, repo, proposal):
+        from memory.security.disclosure import disclosure_scope
+
+        if any(
+            repo.get(parent).disclosure == "LOCAL_ONLY"
+            for parent in proposal.provenance_ids
+        ):
+            proposal = proposal.model_copy(update={"disclosure": "LOCAL_ONLY"})
+        with disclosure_scope(
+            self,
+            repo.ctx,
+            local_only=proposal.disclosure == "LOCAL_ONLY",
+            connection=repo.db,
+        ):
+            return self._create_with_policy(repo, proposal)
+
+    def _create_with_policy(self, repo, proposal):
         # Ensure even injected test/provider objects pass the same schema boundary.
         proposal = MemoryCreate.model_validate(proposal.model_dump())
         if proposal.allowed_project_ids:
@@ -85,6 +101,11 @@ class MemoryService:
             values["allowed_agent_ids"] = [repo.ctx.requesting_agent_id]
         for parent in proposal.provenance_ids:
             evidence = repo.get(parent)
+            if (
+                evidence.disclosure == "LOCAL_ONLY"
+                and proposal.disclosure != "LOCAL_ONLY"
+            ):
+                raise ValueError("Derived memory must preserve local-only disclosure")
             # A derived object can never be less restrictive than any of its evidence.
             if evidence.allowed_agent_ids and (
                 not values["allowed_agent_ids"]
@@ -179,13 +200,19 @@ class MemoryService:
             )
         return memory
 
+    @require_scope("write")
     def create(self, ctx, proposal):
         ctx = ctx.model_copy(update={"requested_scope": "write"})
         with self.engine.begin() as connection:
             repo = SQLMemoryRepository(connection, ctx)
             repo.lock_namespace()
             repo.session()
-            return self._accept(repo, proposal)
+            from memory.security.disclosure import disclosure_scope
+
+            with disclosure_scope(
+                self, ctx, local_only=proposal.disclosure == "LOCAL_ONLY"
+            ):
+                return self._accept(repo, proposal)
 
     def _accept(self, repo, proposal):
         from memory.mutation.engine import MutationKind, classify
@@ -249,6 +276,18 @@ class MemoryService:
                 pending.append(child_id)
 
     def _mutate(self, repo, proposal, kind, previous):
+        from memory.security.disclosure import disclosure_scope
+
+        with disclosure_scope(
+            self,
+            repo.ctx,
+            connection=repo.db,
+            local_only=previous.disclosure == "LOCAL_ONLY"
+            or proposal.disclosure == "LOCAL_ONLY",
+        ):
+            return self._mutate_with_policy(repo, proposal, kind, previous)
+
+    def _mutate_with_policy(self, repo, proposal, kind, previous):
         from memory.mutation.engine import MutationKind
         from memory.schemas import Status
 
@@ -277,6 +316,9 @@ class MemoryService:
             raise ValueError("mutation cannot silently change authorization")
         values = proposal.model_dump()
         values.update(
+            disclosure="LOCAL_ONLY"
+            if previous.disclosure == "LOCAL_ONLY"
+            else proposal.disclosure,
             privacy_class=previous.privacy_class,
             allowed_agent_ids=previous.allowed_agent_ids,
             allowed_project_ids=previous.allowed_project_ids,
@@ -321,6 +363,7 @@ class MemoryService:
         self._invalidate_descendants(repo, old.memory_id)
         return new
 
+    @require_scope("write")
     def mutate(self, ctx, request):
         ctx = ctx.model_copy(update={"requested_scope": "write"})
         from memory.mutation.engine import MutationKind
@@ -345,6 +388,7 @@ class MemoryService:
         with self.engine.begin() as connection:
             return SQLMemoryRepository(connection, ctx).get(memory_id)
 
+    @require_scope("write")
     def patch(self, ctx, memory_id, patch):
         ctx = ctx.model_copy(update={"requested_scope": "write"})
         with self.engine.begin() as connection:
@@ -402,17 +446,20 @@ class MemoryService:
             remove_orphans(connection, ctx.namespace_id)
             return updated
 
+    @require_scope("delete")
     def delete(self, ctx, memory_id):
         ctx = ctx.model_copy(update={"requested_scope": "delete"})
         with self.engine.begin() as connection:
             repo = SQLMemoryRepository(connection, ctx)
             repo.lock_namespace()
+            repo.artifact_workspace = self.settings.hermes_workspace
             removed = repo.hard_delete(memory_id)
             from memory.entities.store import remove_orphans
 
             remove_orphans(connection, ctx.namespace_id)
             return removed
 
+    @require_scope("read")
     def search(self, ctx, request):
         ctx = ctx.model_copy(update={"requested_scope": "read"})
         from memory.entities.store import scores as entity_scores
@@ -654,6 +701,7 @@ class MemoryService:
         with self.engine.begin() as db:
             repo = SQLMemoryRepository(db, ctx)
             repo.lock_namespace()
+            repo.artifact_workspace = self.settings.hermes_workspace
             ids = list(
                 db.execute(
                     select(t.memories.c.id).where(
@@ -704,6 +752,7 @@ class MemoryService:
         with self.engine.begin() as connection:
             return SQLMemoryRepository(connection, ctx).provenance(memory_id)
 
+    @require_scope("write")
     def remember(self, ctx, request):
         ctx = ctx.model_copy(update={"requested_scope": "write"})
         with self.engine.begin() as connection:

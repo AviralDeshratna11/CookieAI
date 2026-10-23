@@ -1,5 +1,9 @@
 ﻿# Persistent Agent Memory System
 
+**New teammate?** Follow the [complete setup from scratch](docs/teammate-setup-from-scratch.md)
+for installations, Docker, required files, credentials, migrations, startup,
+verification, troubleshooting and optional Hermes/autonomy.
+
 Detailed current project status: [what is implemented, verified, partial and still left](docs/project-status-and-roadmap.md), prepared 20 October 2026.
 
 Experimental opt-in execution: [Hermes setup, evidence and limits](docs/hermes-integration.md).
@@ -89,3 +93,11 @@ External-store tests create isolated schemas/temporary roles and unique Redis ke
 Evaluate semantic quality using your real models and corpus. Initial retrieval and graph adapters score authorized records exactly; large stores need indexes, pagination and capacity tests. Entity identity is conservative. The initial statistical miner focuses on tool/configuration outcomes. Seasons use an explicit northern-calendar assumption. Context budgets use a conservative byte bound. Complex segmentation, additional pattern miners and cross-user organization federation need domain-specific extensions.
 
 Configure TLS, encrypted storage/backups, secret management, retention and distributed ingress rate limits for deployment. Development passwords are local defaults. At-rest encryption and sustained production capacity have not been certified by local tests.
+
+## Personal AI workflow
+
+The [Personal AI implementation guide](docs/personal-ai-implementation.md) covers
+the mobile-friendly portal, approved handoff artifacts, conditional skill
+contracts, disclosure enforcement, isolated demo and remaining deployment gates.
+Run `python -m scripts.personal_demo` for a temporary synthetic loopback demo.
+Nebius setup is prepared separately and has not been enabled on the live stack.

@@ -1,0 +1,13 @@
+# Same-Wi-Fi access; keep PostgreSQL and Redis on loopback.
+# Add after the hosted and personal overlays.
+services:
+  api:
+    ports: !override
+      - "${MEMORY_PHONE_BIND_IP:?Set the Wi-Fi IPv4 address in .env.phone}:${MEMORY_API_PORT:-8010}:8000"
+    environment: &phone_environment
+      MEMORY_HANDOFF_ENABLED: "true"
+      MEMORY_AUTONOMY_ENABLED: "true"
+      MEMORY_AUTONOMY_ALLOWED_AGENTS: ${MEMORY_PHONE_ALLOWED_AGENTS:?Set the existing portal agent IDs in .env.phone}
+  worker:
+    environment:
+      <<: *phone_environment

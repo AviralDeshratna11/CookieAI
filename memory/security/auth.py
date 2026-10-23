@@ -27,9 +27,14 @@ def require_scope(scope):
     def decorate(function):
         @wraps(function)
         def checked(self, ctx, *args, **kwargs):
-            return function(
-                self, ctx.model_copy(update={"requested_scope": scope}), *args, **kwargs
-            )
+            from memory.security.disclosure import disclosure_scope
+
+            scoped = ctx.model_copy(update={"requested_scope": scope})
+            memory = getattr(self, "memory", self)
+            if not hasattr(memory, "engine"):
+                return function(self, scoped, *args, **kwargs)
+            with disclosure_scope(memory, scoped):
+                return function(self, scoped, *args, **kwargs)
 
         return checked
 

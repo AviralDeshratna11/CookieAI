@@ -27,6 +27,15 @@ class Settings(BaseSettings):
     embedding_provider_base_url: str | None = None
     embedding_provider_api_key: SecretStr | None = None
     provider_enable_thinking: bool | None = None
+
+    @field_validator("provider_enable_thinking", mode="before")
+    @classmethod
+    def optional_thinking(cls, value):
+        return None if value in ("", "null", "None") else value
+
+    cloud_disclosure_enabled: bool = True
+    local_provider_urls: list[str] = Field(default_factory=list)
+    handoff_enabled: bool = False
     extraction_model: str = "qwen2.5:7b"
     extraction_response_format: str = "json_schema"
     reflection_backend: str = "rules"

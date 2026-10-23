@@ -68,6 +68,7 @@ class Artifact(StrictModel):
 
 
 class MemoryCreate(StrictModel):
+    disclosure: Literal["APPROVED_CLOUD", "LOCAL_ONLY"] = "APPROVED_CLOUD"
     text: str = Field(min_length=1, max_length=16000)
     type: MemoryType = MemoryType.SEMANTIC
     epistemic_type: EpistemicType = EpistemicType.USER_STATED

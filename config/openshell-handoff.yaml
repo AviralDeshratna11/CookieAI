@@ -1,0 +1,13 @@
+# Deployment template, NOT a claim of verified OpenShell integration.
+# Adapt paths to the chosen reviewed Linux sandbox image; keep credentials outside.
+# Reference: NVIDIA/OpenShell examples/sandbox-policy-quickstart/policy.yaml
+version: 1
+filesystem_policy:
+  include_workdir: false
+  read_only: [/bin, /usr, /lib, /etc, /proc, /dev/urandom, /app, /inputs]
+  read_write: [/outputs, /tmp, /dev/null]
+landlock:
+  compatibility: hard_requirement
+# No executor network egress. Inference is broker-owned. Do not grant direct
+# provider access merely to make a failing sandbox launch succeed.
+network_policies: {}

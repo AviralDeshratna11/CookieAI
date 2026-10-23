@@ -1,0 +1,28 @@
+# Opt-in architecture overlay. Does not change the configured hosted deployment.
+# Apply reviewed migrations to the intended database BEFORE starting new services.
+services:
+  api:
+    environment: &personal_environment
+      MEMORY_HANDOFF_ENABLED: ${MEMORY_HANDOFF_ENABLED:-false}
+      MEMORY_CLOUD_DISCLOSURE_ENABLED: ${MEMORY_CLOUD_DISCLOSURE_ENABLED:-true}
+      MEMORY_LOCAL_PROVIDER_URLS: ${MEMORY_LOCAL_PROVIDER_URLS:-[]}
+      MEMORY_HERMES_WORKSPACE: /workspace
+    volumes:
+      - personal_workspace:/workspace
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  worker:
+    environment:
+      <<: *personal_environment
+    volumes:
+      - personal_workspace:/workspace
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+volumes:
+  personal_workspace:

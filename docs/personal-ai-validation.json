@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-23",
+  "timezone": "Asia/Calcutta",
+  "baseline": {"passed": 139, "skipped": 14},
+  "local_regression": {"passed": 157, "skipped": 14, "warning": "Existing Starlette/httpx deprecation"},
+  "evidence_kind": "Local automated tests, synthetic HTTP workflow, mocked provider transport and deterministic fixture evaluation",
+  "checks": {
+    "real_artifact_file_creation_and_integrity": true,
+    "canonical_task_and_outcome_state": true,
+    "source_correction_and_skill_invalidation": true,
+    "applicability_and_exceptions": true,
+    "privacy_before_network_including_embeddings": true,
+    "failed_source_transaction_rollback": true,
+    "source_and_artifact_erasure": true,
+    "worker_and_service_recreation": true,
+    "uncertain_effect_not_replayed": true,
+    "prompt_budget_before_network": true,
+    "mocked_nebius_http_and_usage_metering": true,
+    "local_http_real_worker_extractively_verified": true,
+    "ruff_lint_and_format": true,
+    "javascript_syntax": true,
+    "migration_offline_sql_rendering": true
+  },
+  "not_verified": [
+    "Live Nebius/NVIDIA model inference: user deferred API setup",
+    "Actual-host PostgreSQL concurrency and physical process-crash drills",
+    "Docker image build/start: daemon unavailable",
+    "OpenShell/NemoClaw execution: only policy template prepared",
+    "Current-release Hermes compatibility and expanded Hermes runtime tools",
+    "Browser visual/touch QA: browser tool initialization failed",
+    "Sustained hosted uptime and public judge access",
+    "Live same-model semantic retrieval-versus-skills evaluation",
+    "Semantic retrieval quality with a production embedder"
+  ],
+  "live_deployment_changed": false,
+  "personal_data_used_for_demo": false,
+  "published": false
+}

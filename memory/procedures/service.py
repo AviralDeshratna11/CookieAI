@@ -15,6 +15,7 @@ from memory.experiences.service import (
     ExperienceQuery,
     structural_similarity,
 )
+from memory.procedures.skills import HandoffSkill
 from memory.provenance.policy import evidence_policy
 from memory.schemas import Field, Memory, MemoryCreate, Score, StrictModel, utcnow
 from memory.security.auth import NotFound, require_scope
@@ -26,6 +27,7 @@ class ProcedureCompile(StrictModel):
 
 
 class Procedure(StrictModel):
+    skill_contract: HandoffSkill | None = None
     procedure_id: UUID
     name: str
     goal: str

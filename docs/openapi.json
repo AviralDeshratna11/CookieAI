@@ -6,6 +6,957 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/v1/portal/sources": {
+      "get": {
+        "summary": "Portal Sources",
+        "operationId": "portal_sources_v1_portal_sources_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Portal Source",
+        "operationId": "portal_source_v1_portal_sources_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/config": {
+      "get": {
+        "summary": "Portal Config",
+        "operationId": "portal_config_v1_portal_config_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/skills": {
+      "get": {
+        "summary": "Portal Skills",
+        "operationId": "portal_skills_v1_portal_skills_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/skills/{skill_id}/confirm": {
+      "post": {
+        "summary": "Portal Confirm",
+        "operationId": "portal_confirm_v1_portal_skills__skill_id__confirm_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "skill_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Skill Id"
+            }
+          },
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkillConfirmation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/briefs/check": {
+      "post": {
+        "summary": "Portal Check",
+        "operationId": "portal_check_v1_portal_briefs_check_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BriefInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/briefs": {
+      "post": {
+        "summary": "Portal Brief",
+        "operationId": "portal_brief_v1_portal_briefs_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BriefInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/tasks/{task_id}/artifacts/{run_id}": {
+      "get": {
+        "summary": "Portal Artifact",
+        "operationId": "portal_artifact_v1_portal_tasks__task_id__artifacts__run_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/privacy": {
+      "get": {
+        "summary": "Privacy Get",
+        "operationId": "privacy_get_v1_privacy_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Privacy Update",
+        "operationId": "privacy_update_v1_privacy_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisclosureChange"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks": {
+      "post": {
+        "summary": "Task Create",
+        "operationId": "task_create_v1_tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Task List",
+        "operationId": "task_list_v1_tasks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks/status": {
+      "get": {
+        "summary": "Task Status",
+        "operationId": "task_status_v1_tasks_status_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks/{task_id}": {
+      "get": {
+        "summary": "Task Get",
+        "operationId": "task_get_v1_tasks__task_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tasks/{task_id}/control": {
+      "post": {
+        "summary": "Task Control",
+        "operationId": "task_control_v1_tasks__task_id__control_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "X-Session-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "X-Session-Id"
+            }
+          },
+          {
+            "name": "X-Purpose",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "X-Purpose"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskControl"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/operations/status": {
       "get": {
         "summary": "Operation Status",
@@ -3237,6 +4188,108 @@
         ],
         "title": "Artifact"
       },
+      "BriefInput": {
+        "properties": {
+          "project": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Project"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Source Ids"
+          },
+          "goal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Goal Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "extractive",
+              "model"
+            ],
+            "title": "Mode",
+            "default": "extractive"
+          },
+          "disclosure": {
+            "type": "string",
+            "enum": [
+              "LOCAL_ONLY",
+              "APPROVED_CLOUD"
+            ],
+            "title": "Disclosure",
+            "default": "LOCAL_ONLY"
+          },
+          "repeat_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2592000.0,
+                "minimum": 60.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeat Seconds"
+          },
+          "max_runs": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Runs",
+            "default": 1
+          },
+          "skill_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Id"
+          },
+          "skill_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "project",
+          "source_ids",
+          "goal_id",
+          "idempotency_key"
+        ],
+        "title": "BriefInput"
+      },
       "CompileRequest": {
         "properties": {
           "episode_ids": {
@@ -3297,8 +4350,42 @@
         ],
         "title": "ContextRequest"
       },
+      "DisclosureChange": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "LOCAL_ONLY",
+              "APPROVED_CLOUD"
+            ],
+            "title": "Mode"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode",
+          "expected_revision"
+        ],
+        "title": "DisclosureChange"
+      },
       "Episode": {
         "properties": {
+          "evidence_origin": {
+            "type": "string",
+            "enum": [
+              "REAL",
+              "SYNTHETIC",
+              "REHEARSAL"
+            ],
+            "title": "Evidence Origin",
+            "default": "REAL"
+          },
           "event_id": {
             "anyOf": [
               {
@@ -3419,6 +4506,16 @@
       },
       "EpisodeInput": {
         "properties": {
+          "evidence_origin": {
+            "type": "string",
+            "enum": [
+              "REAL",
+              "SYNTHETIC",
+              "REHEARSAL"
+            ],
+            "title": "Evidence Origin",
+            "default": "REAL"
+          },
           "event_id": {
             "anyOf": [
               {
@@ -3805,6 +4902,90 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "HandoffSkill": {
+        "properties": {
+          "family": {
+            "type": "string",
+            "const": "handoff:v1",
+            "title": "Family",
+            "default": "handoff:v1"
+          },
+          "output_format": {
+            "type": "string",
+            "const": "markdown",
+            "title": "Output Format",
+            "default": "markdown"
+          },
+          "required_sections": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "summary",
+                "decisions",
+                "deadlines",
+                "questions",
+                "next_actions"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Required Sections"
+          },
+          "minimum_sources": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 1.0,
+            "title": "Minimum Sources",
+            "default": 1
+          },
+          "required_prefixes": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Required Prefixes"
+          },
+          "forbidden_phrases": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Forbidden Phrases"
+          },
+          "allowed_tools": {
+            "items": {
+              "type": "string",
+              "const": "cookieai_handoff"
+            },
+            "type": "array",
+            "maxItems": 1,
+            "minItems": 1,
+            "title": "Allowed Tools"
+          },
+          "verifier": {
+            "type": "string",
+            "const": "HANDOFF",
+            "title": "Verifier",
+            "default": "HANDOFF"
+          },
+          "validation": {
+            "type": "string",
+            "const": "USER_CONFIRMED",
+            "title": "Validation",
+            "default": "USER_CONFIRMED"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "HandoffSkill"
+      },
       "LoopInput": {
         "properties": {
           "description": {
@@ -3835,6 +5016,15 @@
       },
       "Memory": {
         "properties": {
+          "disclosure": {
+            "type": "string",
+            "enum": [
+              "APPROVED_CLOUD",
+              "LOCAL_ONLY"
+            ],
+            "title": "Disclosure",
+            "default": "APPROVED_CLOUD"
+          },
           "text": {
             "type": "string",
             "maxLength": 16000,
@@ -4276,6 +5466,15 @@
       },
       "MemoryCreate": {
         "properties": {
+          "disclosure": {
+            "type": "string",
+            "enum": [
+              "APPROVED_CLOUD",
+              "LOCAL_ONLY"
+            ],
+            "title": "Disclosure",
+            "default": "APPROVED_CLOUD"
+          },
           "text": {
             "type": "string",
             "maxLength": 16000,
@@ -4741,6 +5940,16 @@
       },
       "Procedure": {
         "properties": {
+          "skill_contract": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HandoffSkill"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "procedure_id": {
             "type": "string",
             "format": "uuid",
@@ -5195,6 +6404,84 @@
         ],
         "title": "SearchRequest"
       },
+      "SkillConfirmation": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          },
+          "explicitly_confirmed": {
+            "type": "boolean",
+            "const": true,
+            "title": "Explicitly Confirmed"
+          },
+          "contract": {
+            "$ref": "#/components/schemas/HandoffSkill"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_revision",
+          "explicitly_confirmed",
+          "contract"
+        ],
+        "title": "SkillConfirmation"
+      },
+      "SourceInput": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "disclosure": {
+            "type": "string",
+            "enum": [
+              "LOCAL_ONLY",
+              "APPROVED_CLOUD"
+            ],
+            "title": "Disclosure",
+            "default": "LOCAL_ONLY"
+          },
+          "evidence_origin": {
+            "type": "string",
+            "enum": [
+              "REAL",
+              "SYNTHETIC"
+            ],
+            "title": "Evidence Origin",
+            "default": "REAL"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "content"
+        ],
+        "title": "SourceInput"
+      },
       "Status": {
         "type": "string",
         "enum": [
@@ -5208,8 +6495,313 @@
         ],
         "title": "Status"
       },
+      "TaskControl": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "PAUSE",
+              "RESUME",
+              "CANCEL"
+            ],
+            "title": "Action"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action",
+          "expected_revision"
+        ],
+        "title": "TaskControl"
+      },
+      "TaskInput": {
+        "properties": {
+          "goal_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Goal Id"
+          },
+          "objective": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Objective"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key"
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "deterministic",
+              "hermes"
+            ],
+            "title": "Backend",
+            "default": "deterministic"
+          },
+          "complete_goal_on_success": {
+            "type": "boolean",
+            "title": "Complete Goal On Success",
+            "default": false
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ToolStep"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "title": "Steps"
+          },
+          "allowed_tools": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "cookieai_calculate",
+                "cookieai_read_text",
+                "cookieai_handoff"
+              ]
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Allowed Tools"
+          },
+          "verifier": {
+            "$ref": "#/components/schemas/VerifierSpec"
+          },
+          "priority": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Priority",
+            "default": 5
+          },
+          "max_runs": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Runs",
+            "default": 1
+          },
+          "max_evaluations": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Max Evaluations",
+            "default": 100
+          },
+          "max_tool_calls": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Max Tool Calls",
+            "default": 12
+          },
+          "max_model_calls": {
+            "type": "integer",
+            "maximum": 12.0,
+            "minimum": 0.0,
+            "title": "Max Model Calls",
+            "default": 6
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "maximum": 300.0,
+            "minimum": 1.0,
+            "title": "Timeout Seconds",
+            "default": 60
+          },
+          "retry_seconds": {
+            "type": "integer",
+            "maximum": 86400.0,
+            "minimum": 10.0,
+            "title": "Retry Seconds",
+            "default": 60
+          },
+          "repeat_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2592000.0,
+                "minimum": 60.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repeat Seconds"
+          },
+          "start_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start At"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "depends_on": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Depends On"
+          },
+          "parent_task_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Task Id"
+          },
+          "evidence_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Evidence Ids"
+          },
+          "required_procedure_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Procedure Id"
+          },
+          "procedure_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Procedure Revision"
+          },
+          "context_signature": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "maxProperties": 10,
+            "title": "Context Signature"
+          },
+          "preconditions": {
+            "items": {
+              "$ref": "#/components/schemas/VerifierSpec"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Preconditions"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "SCHEDULE",
+              "EVENT",
+              "REHEARSAL"
+            ],
+            "title": "Trigger",
+            "default": "MANUAL"
+          },
+          "event_topics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Event Topics"
+          },
+          "evidence_origin": {
+            "type": "string",
+            "enum": [
+              "REAL",
+              "SYNTHETIC",
+              "REHEARSAL"
+            ],
+            "title": "Evidence Origin",
+            "default": "REAL"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "goal_id",
+          "objective",
+          "idempotency_key",
+          "allowed_tools",
+          "verifier"
+        ],
+        "title": "TaskInput"
+      },
       "ToolAttempt": {
         "properties": {
+          "observation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Id"
+          },
+          "sequence": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sequence"
+          },
           "tool": {
             "type": "string",
             "maxLength": 200,
@@ -5289,6 +6881,39 @@
           "success"
         ],
         "title": "ToolAttempt"
+      },
+      "ToolStep": {
+        "properties": {
+          "tool": {
+            "type": "string",
+            "enum": [
+              "cookieai_calculate",
+              "cookieai_read_text",
+              "cookieai_handoff"
+            ],
+            "title": "Tool"
+          },
+          "arguments": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Arguments"
+          },
+          "on_failure": {
+            "type": "string",
+            "enum": [
+              "STOP",
+              "CONTINUE"
+            ],
+            "title": "On Failure",
+            "default": "STOP"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tool"
+        ],
+        "title": "ToolStep"
       },
       "TurnFeedback": {
         "properties": {
@@ -5418,6 +7043,61 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VerifierSpec": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "DECIMAL_RESULT",
+              "TEXT_SHA256",
+              "TEXT_EXISTS",
+              "JSON_FIELDS",
+              "HANDOFF"
+            ],
+            "title": "Kind"
+          },
+          "step_index": {
+            "type": "integer",
+            "maximum": 11.0,
+            "minimum": 0.0,
+            "title": "Step Index",
+            "default": 0
+          },
+          "expected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected"
+          },
+          "path": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "VerifierSpec"
       }
     },
     "securitySchemes": {

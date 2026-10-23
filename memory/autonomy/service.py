@@ -10,6 +10,7 @@ import time
 from datetime import timedelta, timezone
 from uuid import UUID, uuid4, uuid5
 
+import httpx
 from sqlalchemy import and_, exists, func, insert, or_, select, update
 
 from database import autonomy_tables as a
@@ -100,6 +101,21 @@ class TaskSupervisor:
     @require_scope("write")
     def create(self, ctx, body: TaskInput):
         self._authorize(ctx)
+        if "cookieai_handoff" in body.allowed_tools:
+            from memory.autonomy.handoff import HandoffSpec, inspect_sources
+
+            if not self.memory.settings.handoff_enabled:
+                raise AccessDenied("Handoff execution is disabled")
+            source_rows = inspect_sources(
+                self.memory, ctx, HandoffSpec.model_validate(body.steps[0].arguments)
+            )
+            if body.evidence_origin == "REAL" and any(
+                "evidence-origin:SYNTHETIC" in source.tags
+                for _, source, _ in source_rows
+            ):
+                raise ValueError(
+                    "Synthetic inputs cannot produce real learning evidence"
+                )
         if body.backend == "hermes":
             from memory.agent.hermes import HermesBackend
 
@@ -524,6 +540,24 @@ class TaskSupervisor:
             ).scalar_one()
             if goal["status"] != "ACTIVE":
                 raise AccessDenied("Goal is no longer active")
+        body = TaskInput.model_validate(row["payload"]["definition"])
+        if body.verifier.kind == "HANDOFF":
+            if not self.memory.settings.handoff_enabled:
+                raise AccessDenied("Handoff execution was disabled")
+            from memory.autonomy.handoff import HandoffSpec, inspect_sources
+
+            spec = HandoffSpec.model_validate(body.steps[0].arguments)
+            inspect_sources(self.memory, ctx, spec)
+            if body.required_procedure_id:
+                from memory.autonomy.portal import Portal
+
+                if (
+                    Portal(self.memory).check_skill(
+                        ctx, body.required_procedure_id, body.procedure_revision, spec
+                    )["decision"]
+                    != "applicable"
+                ):
+                    raise Conflict("Skill applicability changed")
 
     def _journal(self, ctx, identity, run_id, token, refs, deadline, observation):
         self._guard(ctx, identity, run_id, token, refs, deadline)
@@ -602,9 +636,73 @@ class TaskSupervisor:
                 "reason": "DailyExecutionBudget",
             }
 
+    def process(self, ctx, identity):
+        from memory.security.disclosure import disclosure_scope
+
+        task = self.get(ctx, identity)
+        definition = task["state"]["definition"]
+        local = any(
+            step["tool"] == "cookieai_handoff"
+            and step["arguments"].get("disclosure") == "LOCAL_ONLY"
+            for step in definition["steps"]
+        )
+        with disclosure_scope(self.memory, ctx, local_only=local):
+            try:
+                return self._process(ctx, identity)
+            except (
+                httpx.HTTPError,
+                AccessDenied,
+                Conflict,
+                NotFound,
+                ValueError,
+                OSError,
+            ) as error:
+                return self._runtime_failure(ctx, identity, error)
+
+    @require_scope("write")
+    def _runtime_failure(self, ctx, identity, error):
+        """A failed preflight is reviewable; possible external effects are never replayed."""
+        self._authorize(ctx)
+        with self.memory.engine.begin() as db:
+            repo = SQLMemoryRepository(db, ctx)
+            repo.lock_namespace()
+            row = self._row(repo, identity)
+            if row["status"] in TERMINAL or row["status"] == "PAUSED":
+                return {"status": row["status"]}
+            if row["status"] == "RUNNING":
+                db.execute(
+                    update(a.runs)
+                    .where(a.runs.c.task_id == identity, a.runs.c.status == "RUNNING")
+                    .values(status="UNCERTAIN", finished_at=utcnow())
+                )
+                status, next_run_at = "UNCERTAIN", None
+            else:
+                transient = isinstance(error, httpx.TransportError) or (
+                    isinstance(error, httpx.HTTPStatusError)
+                    and (
+                        error.response.status_code == 429
+                        or error.response.status_code >= 500
+                    )
+                )
+                status = "WAITING" if transient else "PAUSED"
+                next_run_at = (
+                    utcnow()
+                    + timedelta(seconds=row["payload"]["definition"]["retry_seconds"])
+                    if transient
+                    else None
+                )
+            self._transition(
+                db, row, status, type(error).__name__, next_run_at=next_run_at
+            )
+            return {
+                "task_id": str(identity),
+                "status": status,
+                "reason": type(error).__name__,
+            }
+
     @require_scope("write")
     @stop_on_budget
-    def process(self, ctx, identity):
+    def _process(self, ctx, identity):
         self._authorize(ctx)
         with self.memory.engine.begin() as db:
             repo = SQLMemoryRepository(db, ctx)
@@ -686,7 +784,15 @@ class TaskSupervisor:
                 )
                 if repo.get(identity).status.value != "ACTIVE":
                     raise Conflict("Task approval is no longer active")
-            except (Conflict, NotFound):
+                if body.verifier.kind == "HANDOFF":
+                    from memory.autonomy.handoff import HandoffSpec, inspect_sources
+
+                    inspect_sources(
+                        self.memory,
+                        ctx,
+                        HandoffSpec.model_validate(body.steps[0].arguments),
+                    )
+            except (Conflict, NotFound, OSError):
                 self._transition(
                     db, row, "WAITING", "ApprovalRequiresReview", payload=payload
                 )
@@ -717,11 +823,36 @@ class TaskSupervisor:
                     != str(value).strip().casefold()
                     for key, value in procedure.context_signature.items()
                 )
+                skill_applicable = None
+                if procedure.skill_contract and body.verifier.kind == "HANDOFF":
+                    from memory.autonomy.handoff import HandoffSpec
+                    from memory.procedures.skills import applicability
+
+                    handoff = HandoffSpec.model_validate(body.steps[0].arguments)
+                    skill_applicable = applicability(
+                        procedure.skill_contract,
+                        handoff,
+                        [repo.get(key).text for key in handoff.sources],
+                        active=procedure_memory.status.value == "ACTIVE",
+                        revision_matches=procedure_memory.revision
+                        == body.procedure_revision,
+                    )
                 if (
                     procedure_memory.status.value != "ACTIVE"
-                    or conditions_changed
-                    or structural_similarity(procedure.context_signature, signature)
-                    < 0.65
+                    or (
+                        skill_applicable is not None
+                        and skill_applicable["decision"] != "applicable"
+                    )
+                    or (
+                        skill_applicable is None
+                        and (
+                            conditions_changed
+                            or structural_similarity(
+                                procedure.context_signature, signature
+                            )
+                            < 0.65
+                        )
+                    )
                 ):
                     self._transition(
                         db,
@@ -732,6 +863,10 @@ class TaskSupervisor:
                         next_run_at=utcnow() + timedelta(seconds=body.retry_seconds),
                     )
                     return {"status": "WAITING"}
+                payload["applicability"] = skill_applicable or {
+                    "decision": "applicable",
+                    "reasons": ["Pinned procedure context matched"],
+                }
             # Save the evaluation without changing the immutable approval definition.
             db.execute(
                 update(a.tasks).where(a.tasks.c.id == identity).values(payload=payload)
@@ -791,6 +926,20 @@ class TaskSupervisor:
                         "evidence_origin": body.evidence_origin,
                         "retrieval_latency_ms": retrieval_latency_ms,
                         "task_memory_revision": repo.get(identity).revision,
+                        "applicability": payload.get(
+                            "applicability",
+                            {
+                                "decision": "applicable",
+                                "reasons": [
+                                    "Explicit approved task; no skill selected"
+                                ],
+                            },
+                        ),
+                        "skill_id": str(body.required_procedure_id)
+                        if body.required_procedure_id
+                        else None,
+                        "skill_revision": body.procedure_revision,
+                        "trigger": body.trigger,
                     },
                 )
             )
@@ -860,10 +1009,28 @@ class TaskSupervisor:
                 journal(observation)
                 began = time.monotonic()
                 try:
-                    output = execute_tool(step.tool, step.arguments, workspace)
+                    if step.tool == "cookieai_handoff":
+                        from memory.autonomy.handoff import HandoffSpec, execute_handoff
+
+                        if not self.memory.settings.handoff_enabled:
+                            raise AccessDenied("Handoff execution was disabled")
+                        output = execute_handoff(
+                            self.memory,
+                            ctx,
+                            HandoffSpec.model_validate(step.arguments),
+                            run_id,
+                            guard=guard,
+                            meter=lambda sequence: self._meter_model(
+                                ctx, identity, run_id, token, refs, deadline, sequence
+                            ),
+                        )
+                    else:
+                        output = execute_tool(step.tool, step.arguments, workspace)
                     observation.update(
                         success=True,
-                        result={"value": output["value"]}
+                        result=output
+                        if step.tool == "cookieai_handoff"
+                        else {"value": output["value"]}
                         if "value" in output
                         else {
                             "sha256": hashlib.sha256(
@@ -951,7 +1118,38 @@ class TaskSupervisor:
                     check,
                     reason="ExecutionIncomplete",
                 )
-        check = verify(body.verifier, workspace, receipts, guard=guard)
+        if body.verifier.kind == "HANDOFF":
+            from memory.autonomy.contracts import Verification
+            from memory.autonomy.handoff import HandoffSpec, verify_handoff
+
+            guard()
+            try:
+                if not receipts or not receipts[0]["success"]:
+                    raise ValueError("No successful artifact creation")
+                evidence = verify_handoff(
+                    self.memory,
+                    ctx,
+                    HandoffSpec.model_validate(body.steps[0].arguments),
+                    run_id,
+                )
+                check = Verification(
+                    verdict="PASS",
+                    criterion="HANDOFF",
+                    checked_at=utcnow(),
+                    evidence=evidence,
+                    limitations=[
+                        "Verifies attribution and structure, not truth of source claims"
+                    ],
+                )
+            except (OSError, ValueError, KeyError, Conflict, AccessDenied) as error:
+                check = Verification(
+                    verdict="FAIL",
+                    criterion="HANDOFF",
+                    checked_at=utcnow(),
+                    limitations=[type(error).__name__],
+                )
+        else:
+            check = verify(body.verifier, workspace, receipts, guard=guard)
         return self._finish(ctx, identity, run_id, token, refs, body, receipts, check)
 
     def _finish(

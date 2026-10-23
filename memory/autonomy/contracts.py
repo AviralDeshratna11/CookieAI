@@ -8,12 +8,17 @@ from memory.schemas import Field, MemoryCreate, StrictModel
 
 
 class ToolStep(StrictModel):
-    tool: Literal["cookieai_calculate", "cookieai_read_text"]
+    tool: Literal["cookieai_calculate", "cookieai_read_text", "cookieai_handoff"]
     arguments: dict = Field(default_factory=dict)
     on_failure: Literal["STOP", "CONTINUE"] = "STOP"
 
     @model_validator(mode="after")
     def typed_parameters(self):
+        if self.tool == "cookieai_handoff":
+            from memory.autonomy.handoff import HandoffSpec
+
+            HandoffSpec.model_validate(self.arguments)
+            return self
         key = "expression" if self.tool == "cookieai_calculate" else "path"
         if set(self.arguments) != {key} or not isinstance(self.arguments[key], str):
             raise ValueError("tool parameters do not match the approved schema")
@@ -23,13 +28,17 @@ class ToolStep(StrictModel):
 
 
 class VerifierSpec(StrictModel):
-    kind: Literal["DECIMAL_RESULT", "TEXT_SHA256", "TEXT_EXISTS", "JSON_FIELDS"]
+    kind: Literal[
+        "DECIMAL_RESULT", "TEXT_SHA256", "TEXT_EXISTS", "JSON_FIELDS", "HANDOFF"
+    ]
     step_index: int = Field(default=0, ge=0, le=11)
     expected: str | dict | None = None
     path: str | None = Field(default=None, max_length=200)
 
     @model_validator(mode="after")
     def concrete_criterion(self):
+        if self.kind == "HANDOFF":
+            return self
         if self.kind == "DECIMAL_RESULT":
             from decimal import Decimal, InvalidOperation
 
@@ -69,9 +78,9 @@ class TaskInput(StrictModel):
     backend: Literal["deterministic", "hermes"] = "deterministic"
     complete_goal_on_success: bool = False
     steps: list[ToolStep] = Field(default_factory=list, max_length=12)
-    allowed_tools: list[Literal["cookieai_calculate", "cookieai_read_text"]] = Field(
-        min_length=1, max_length=2
-    )
+    allowed_tools: list[
+        Literal["cookieai_calculate", "cookieai_read_text", "cookieai_handoff"]
+    ] = Field(min_length=1, max_length=3)
     verifier: VerifierSpec
     priority: int = Field(default=5, ge=1, le=9)
     max_runs: int = Field(default=1, ge=1, le=100)
@@ -116,6 +125,26 @@ class TaskInput(StrictModel):
             raise ValueError("verifier refers to a missing planned step")
         if self.backend == "hermes" and self.max_model_calls < 1:
             raise ValueError("Hermes needs a positive model-call budget")
+        handoffs = [step for step in self.steps if step.tool == "cookieai_handoff"]
+        if "cookieai_handoff" in self.allowed_tools or self.verifier.kind == "HANDOFF":
+            if (
+                self.backend != "deterministic"
+                or len(self.steps) != 1
+                or len(handoffs) != 1
+                or self.verifier.kind != "HANDOFF"
+            ):
+                raise ValueError(
+                    "Handoffs require one bounded deterministic operation and independent HANDOFF verifier"
+                )
+            from memory.autonomy.handoff import HandoffSpec
+
+            spec = HandoffSpec.model_validate(handoffs[0].arguments)
+            if not set(spec.sources).issubset(self.evidence_ids):
+                raise ValueError(
+                    "Handoff sources must be approved evidence dependencies"
+                )
+            if spec.mode == "model" and self.max_model_calls < 1:
+                raise ValueError("Model handoffs require a model-call budget")
         if (self.required_procedure_id is None) != (self.procedure_revision is None):
             raise ValueError(
                 "procedure ID and pinned revision must be supplied together"
@@ -128,7 +157,9 @@ class TaskInput(StrictModel):
             raise ValueError("invalid event topic")
         if any(len(value) > 200 for value in self.context_signature.values()):
             raise ValueError("task context labels exceed their bound")
-        if any(spec.kind == "DECIMAL_RESULT" for spec in self.preconditions):
+        if any(
+            spec.kind in {"DECIMAL_RESULT", "HANDOFF"} for spec in self.preconditions
+        ):
             raise ValueError(
                 "preconditions must check independently observable artifacts"
             )

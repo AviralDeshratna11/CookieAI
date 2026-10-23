@@ -1,12 +1,12 @@
 {
-  "backup": "hosted-20261019T191907Z-03e4e20f.dump",
-  "bytes": 1396924,
+  "backup": "hosted-20261023T200726Z-e6cdf541.dump",
+  "bytes": 2201025,
   "archive_list_verified": true,
   "encrypted": false,
   "scope": "Hosted public application schema; excludes managed auth/storage",
   "restore_drill": {
     "status": "passed",
-    "canonical_records": 126,
+    "canonical_records": 143,
     "destination": "fresh isolated local PostgreSQL database; removed after verification"
   }
 }

@@ -18,6 +18,12 @@ class Worker:
         self.queue = JobQueue(memory.engine, context)
 
     def execute(self, queue, ctx, payload):
+        from memory.security.disclosure import disclosure_scope
+
+        with disclosure_scope(self.memory, ctx):
+            return self._execute(queue, ctx, payload)
+
+    def _execute(self, queue, ctx, payload):
         if queue in {"autonomy.tick", "autonomy.run"}:
             from memory.autonomy.service import TaskSupervisor
 

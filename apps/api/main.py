@@ -90,6 +90,9 @@ def create_app(settings=None, service=None, auth=None):
                 headers={"Retry-After": "60"},
             )
         response = await call_next(request)
+        if request.url.path.startswith("/v1/"):
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["X-Content-Type-Options"] = "nosniff"
         duration = time.perf_counter() - start
         metrics["requests"] += 1
         metrics["latency_seconds"] += duration
@@ -108,6 +111,17 @@ def create_app(settings=None, service=None, auth=None):
     @app.exception_handler(AccessDenied)
     async def denied(request: Request, error):
         return JSONResponse(status_code=403, content={"detail": "access denied"})
+
+    from memory.security.disclosure import DisclosureDenied
+
+    @app.exception_handler(DisclosureDenied)
+    async def disclosure_denied(request, error):
+        return JSONResponse(
+            status_code=403,
+            content={
+                "detail": "Hosted inference is blocked by your privacy choice. Configure a trusted local provider or review workspace disclosure settings."
+            },
+        )
 
     @app.exception_handler(NotFound)
     async def missing(request: Request, error):
@@ -172,6 +186,84 @@ def create_app(settings=None, service=None, auth=None):
     from memory.autonomy.service import TaskSupervisor
 
     supervisor = TaskSupervisor(service)
+
+    from pathlib import Path
+
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    from memory.autonomy.portal import (
+        BriefInput,
+        Portal,
+        SkillConfirmation,
+        SourceInput,
+    )
+    from memory.security.disclosure import DisclosureChange, change_policy, policy
+
+    portal = Portal(service)
+    static = Path(__file__).parent / "static"
+    app.mount("/assets", StaticFiles(directory=static), name="portal-assets")
+
+    @app.get("/", include_in_schema=False)
+    def portal_page():
+        return FileResponse(
+            static / "index.html",
+            headers={
+                "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+                "Cache-Control": "no-store",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    @app.get("/v1/portal/sources")
+    def portal_sources(ctx=Depends(read)):
+        return portal.sources(ctx)
+
+    @app.get("/v1/portal/config")
+    def portal_config(ctx=Depends(read)):
+        from database.repositories.memory import SQLMemoryRepository
+
+        with service.engine.begin() as db:
+            SQLMemoryRepository(db, ctx)
+        return {
+            "synthetic_demo": getattr(app.state, "synthetic_demo", False),
+            "handoff_enabled": settings.handoff_enabled,
+            "embedding_model": service.embedder.model_id,
+            "cloud_disclosure_enabled": settings.cloud_disclosure_enabled,
+            "model": settings.extraction_model,
+        }
+
+    @app.post("/v1/portal/sources", status_code=201)
+    def portal_source(body: SourceInput, ctx=Depends(write)):
+        return portal.add_source(ctx, body)
+
+    @app.get("/v1/portal/skills")
+    def portal_skills(ctx=Depends(read)):
+        return portal.skills(ctx)
+
+    @app.post("/v1/portal/skills/{skill_id}/confirm")
+    def portal_confirm(skill_id: UUID, body: SkillConfirmation, ctx=Depends(write)):
+        return portal.confirm_skill(ctx, skill_id, body)
+
+    @app.post("/v1/portal/briefs/check")
+    def portal_check(body: BriefInput, ctx=Depends(read)):
+        return portal.check(ctx, body)
+
+    @app.post("/v1/portal/briefs", status_code=202)
+    def portal_brief(body: BriefInput, ctx=Depends(write)):
+        return portal.submit(ctx, body)
+
+    @app.get("/v1/portal/tasks/{task_id}/artifacts/{run_id}")
+    def portal_artifact(task_id: UUID, run_id: UUID, ctx=Depends(read)):
+        return portal.artifact(ctx, task_id, run_id)
+
+    @app.get("/v1/privacy")
+    def privacy_get(ctx=Depends(read)):
+        return policy(service, ctx)
+
+    @app.put("/v1/privacy")
+    def privacy_update(body: DisclosureChange, ctx=Depends(write)):
+        return change_policy(service, ctx, body)
 
     @app.post("/v1/tasks", status_code=202)
     def task_create(body: TaskInput, ctx=Depends(write)):
