@@ -201,6 +201,9 @@ def create_app(settings=None, service=None, auth=None):
     from memory.security.disclosure import DisclosureChange, change_policy, policy
 
     portal = Portal(service)
+    from memory.retrieval.correlation import CorrelateRequest, CorrelationService
+
+    correlation_service = CorrelationService(service)
     static = Path(__file__).parent / "static"
     app.mount("/assets", StaticFiles(directory=static), name="portal-assets")
 
@@ -231,7 +234,22 @@ def create_app(settings=None, service=None, auth=None):
             "embedding_model": service.embedder.model_id,
             "cloud_disclosure_enabled": settings.cloud_disclosure_enabled,
             "model": settings.extraction_model,
+            "correlation_backend": "heuristic",
         }
+
+    @app.post("/v1/portal/correlate")
+    def portal_correlate(body: CorrelateRequest, ctx=Depends(read)):
+        return correlation_service.correlate(ctx, body.query)
+
+    @app.get("/v1/portal/conversations")
+    def portal_conversations(limit: int = 30, ctx=Depends(read)):
+        return correlation_service.conversations(ctx, limit=limit)
+
+    @app.get("/v1/portal/conversations/{conversation_session_id}/turns")
+    def portal_conversation_turns(
+        conversation_session_id: UUID, limit: int = 50, ctx=Depends(read)
+    ):
+        return correlation_service.turns(ctx, conversation_session_id, limit=limit)
 
     @app.post("/v1/portal/sources", status_code=201)
     def portal_source(body: SourceInput, ctx=Depends(write)):
