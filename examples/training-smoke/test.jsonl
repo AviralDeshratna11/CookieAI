@@ -1,0 +1,2 @@
+{"messages": [{"role": "user", "content": "On 2019-04-27 I booked a ferry. On 2019-05-18 I boarded. How many elapsed calendar days passed?"}, {"role": "assistant", "content": "21 days"}]}
+{"messages": [{"role": "user", "content": "Profile 16: I bought a green travel bag. What is its serial number?"}, {"role": "assistant", "content": "The serial number was not provided."}]}

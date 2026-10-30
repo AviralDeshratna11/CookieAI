@@ -1,0 +1,67 @@
+{
+  "context_tokens": 32768,
+  "evidence_tokens": 12000,
+  "output_tokens": 512,
+  "judge_output_tokens": 64,
+  "retrieval_policy": {
+    "max_memory_tokens": 24000
+  },
+  "answer": {
+    "base_url": "https://api.tokenfactory.nebius.com/v1",
+    "api_key_env": "NEBIUS_API_KEY",
+    "model": "REPLACE_WITH_ACCOUNT_VISIBLE_NVIDIA_MODEL_ID",
+    "context_tokens": 32768,
+    "template_reserve_tokens": 1024,
+    "timeout_seconds": 60,
+    "attempts": 1,
+    "completion_limit_parameter": "max_completion_tokens",
+    "reasoning_effort": null,
+    "bounded_output_verified": false,
+    "pricing": {
+      "input": null,
+      "output": null,
+      "currency": "USD",
+      "unit": "per_million_tokens",
+      "output_includes_reasoning": false,
+      "verified_on": null,
+      "source_url": "https://nebius.com/services/token-factory"
+    }
+  },
+  "judge": {
+    "base_url": "https://api.tokenfactory.nebius.com/v1",
+    "api_key_env": "NEBIUS_API_KEY",
+    "model": "REPLACE_WITH_ACCOUNT_VISIBLE_NVIDIA_JUDGE_ID",
+    "context_tokens": 32768,
+    "template_reserve_tokens": 1024,
+    "timeout_seconds": 60,
+    "attempts": 1,
+    "completion_limit_parameter": "max_completion_tokens",
+    "reasoning_effort": null,
+    "bounded_output_verified": false,
+    "pricing": {
+      "input": null,
+      "output": null,
+      "currency": "USD",
+      "unit": "per_million_tokens",
+      "output_includes_reasoning": false,
+      "verified_on": null,
+      "source_url": "https://nebius.com/services/token-factory"
+    }
+  },
+  "embedding": {
+    "backend": "hash-test",
+    "dimensions": 64,
+    "batch_size": 1,
+    "batching_verified": false,
+    "version": "1",
+    "input_type_mode": "prefix",
+    "document_prefix": "",
+    "query_prefix": "",
+    "note": "Synthetic fixtures only. For real paid datasets use backend compatible and add an independently priced route, exact model and dimensions."
+  },
+  "hermes": {
+    "python": ".hermes-runtime/venv/Scripts/python.exe",
+    "source": ".hermes-runtime/source/hermes-agent-1f6efd6eb0ba6b573c73c96d14dff1be4454823d",
+    "timeout_seconds": 60
+  }
+}

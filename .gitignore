@@ -38,4 +38,7 @@ test-results*.xml
 .hermes-source/
 .hermes-review/
 .hermes-runtime/
+.benchmark-artifacts/
+.chat-workspace/
+config/benchmark.nebius.local.json
 

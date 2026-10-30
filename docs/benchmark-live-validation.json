@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-29",
+  "timezone": "Asia/Calcutta",
+  "status": "initial authorized pilot complete; paid calls stopped",
+  "models": {
+    "answer": "nvidia/Nemotron-3_5-Lightning",
+    "judge": "nvidia/nemotron-3-super-120b-a12b",
+    "embedding": "Qwen/Qwen3-Embedding-8B"
+  },
+  "limits": {
+    "cumulative_usd": "1",
+    "cumulative_http_attempts": 100,
+    "actual_http_attempts": 83
+  },
+  "cost": {
+    "cap_usd": "1",
+    "call_cap": 100,
+    "calls": 83,
+    "spent_or_reserved_usd": "0.00752852",
+    "states": {
+      "pending": {
+        "calls": 1,
+        "usd": "0.00012258"
+      },
+      "settled": {
+        "calls": 75,
+        "usd": "0.00606986"
+      },
+      "uncertain": {
+        "calls": 7,
+        "usd": "0.00133608"
+      }
+    },
+    "authority": "local conservative ledger, not provider billing"
+  },
+  "synthetic": {
+    "development_cases": 4,
+    "attempts": 8,
+    "correct": 8,
+    "valid_grades": 8,
+    "report": "docs/benchmark-live-synthetic-results-v2.json"
+  },
+  "oracle": {
+    "questions": 3,
+    "attempts": 6,
+    "correct": 1,
+    "wrong": 4,
+    "invalid_final": 1,
+    "report": "docs/benchmark-live-oracle-results.json",
+    "per_mode": {
+      "direct": {
+        "attempts": 3,
+        "correct": 1,
+        "valid_grades": 3
+      },
+      "hermes": {
+        "attempts": 3,
+        "correct": 0,
+        "valid_grades": 2
+      }
+    }
+  },
+  "provider_checks": {
+    "authenticated_catalog_discovery": true,
+    "tool_round_trip": true,
+    "embedding_batch_indices_and_dimensions": true,
+    "max_completion_tokens_documented": true,
+    "lightning_reasoning_none_verified": true
+  },
+  "fixes_during_pilot": [
+    "Use max_completion_tokens to bound reasoning plus final output",
+    "Optional fingerprinted reasoning_effort=none for Lightning",
+    "Clarify recommendations may propose new options subject to known preferences",
+    "Bound embedding batch responses at 1 MiB and reduce real-data batches from 16 to 4"
+  ],
+  "diagnostics": [
+    {
+      "question_id": "9d25d4e0",
+      "finding": "Both modes wrong; only 2/3 gold sessions retrieved. Evidence omitted before final packing. Not solely a model-generation failure."
+    },
+    {
+      "question_id": "gpt4_1e4a8aeb",
+      "finding": "Both session dates and relevant user statements reached both modes; direct predicted 16 days, Hermes 14, reference 6 (7 inclusive accepted). Date reasoning remains weak."
+    },
+    {
+      "question_id": "35a27287",
+      "finding": "Direct judged correct. Hermes returned a stop response containing an unmatched closing think delimiter, rejected as invalid final output rather than silently graded."
+    }
+  ],
+  "earlier_failures": {
+    "synthetic_v1": "3 direct responses exhausted 1024 completion tokens on reasoning; preserved in docs/benchmark-live-synthetic-results.json",
+    "oracle_v1": "Stopped after large embedding responses exceeded prior byte bound; failed and interrupted request reservations retained"
+  },
+  "tests": {
+    "passed": 47,
+    "skipped": 2,
+    "seconds": 35.41,
+    "ruff": "passed",
+    "git_diff_check": "passed"
+  },
+  "scope": "MemoryService + real pinned HermesBackend; no full AgentService, no full S/M dataset, no LoCoMo or Memory Arena proxy runs",
+  "next_steps": [
+    "Offline retrieval coverage and context-selection diagnosis before spending on larger samples",
+    "Deterministic date helper with explicit event/session date resolution",
+    "Provider final-content handling investigation without treating reasoning text as a final answer",
+    "Full S dataset held-out pilot only after a priced manifest and explicit additional-run authorization"
+  ],
+  "security": "Credential is stored only in ignored .env.nebius; value omitted from reports. Rotate the key pasted in chat."
+}

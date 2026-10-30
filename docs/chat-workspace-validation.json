@@ -1,0 +1,22 @@
+{
+  "scope": "Chat workspace, independent assistant provider route, authorized session correlation and opt-in inspector",
+  "python_tests_passed": 23,
+  "node_tests_passed": 9,
+  "ruff": "passed",
+  "javascript_syntax": "passed",
+  "markup_id_and_reference_checks": "passed",
+  "local_preview_http_status": 200,
+  "new_paid_calls": 0,
+  "new_cloud_resources": 0,
+  "live_nemotron_verification": "not run; injected provider tests passed",
+  "visual_verification": "blocked by computer-use browser URL confidence check",
+  "docs": "docs/chat-workspace.md",
+  "pre_push_verification": {
+    "python_tests_passed": 254,
+    "python_tests_skipped": 14,
+    "node_tests_passed": 9,
+    "ruff": "passed",
+    "git_diff_check": "passed",
+    "private_credential_scan": "passed; no known private API keys, workspace tokens or private key material in candidate files"
+  }
+}

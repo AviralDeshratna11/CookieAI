@@ -1,0 +1,186 @@
+{
+  "date": "2026-10-30",
+  "scope": "Full benchmark evaluation with NVIDIA models; no weight training",
+  "code": {
+    "git_head": "4cda94a14a231e9974478544168e51cfce825ffc",
+    "source_tree_sha256": "048992dcb27f0ffd91fbb8028c09375b869a143bb0fc09928f2e246eea249623"
+  },
+  "dataset": {
+    "variant": "s_cleaned",
+    "question_count": 500,
+    "bytes": 277383467,
+    "file_sha256": "d6f21ea9d60a0d56f34a05b609c79c88a451d2ae03597821ea3d5a9678c3a442",
+    "questions_with_repeated_session_ids": 13,
+    "empty_turns": 12,
+    "raw_file_modified": false
+  },
+  "plans": {
+    "paired": {
+      "question_count": 500,
+      "modes": [
+        "direct",
+        "hermes"
+      ],
+      "launch_strategy": "full_baseline",
+      "cost": {
+        "uncached_upper_bound_usd": "18.73455268",
+        "stage_costs": {
+          "embedding": "4.01967268",
+          "answer": "4.42368",
+          "judge": "10.2912"
+        },
+        "stages": {
+          "embedding": {
+            "input_tokens": 401967268,
+            "output_tokens": 0,
+            "calls": 104719
+          },
+          "answer": {
+            "input_tokens": 65536000,
+            "output_tokens": 2048000,
+            "calls": 2000
+          },
+          "judge": {
+            "input_tokens": 32768000,
+            "output_tokens": 512000,
+            "calls": 1000
+          }
+        },
+        "distinct_document_entity_vectors": 394138,
+        "storage": {
+          "policy": "rolling",
+          "peak_instance_vectors": 903,
+          "conservative_projection_disk_bytes": 1547173888,
+          "note": "Scratch/cache planning allowance; check free disk again before launch. Rolling evicts per-instance embedding cache and index after terminal outcomes."
+        },
+        "price_blockers": [],
+        "expected_usd": null,
+        "historical_scenarios": {
+          "answer": {
+            "projected_usd": "0.40026000",
+            "observations": 6,
+            "method": "Historical pilot mean tokens times current maximum call count; does not validate new tools or model quality"
+          },
+          "judge": {
+            "projected_usd": "0.16074000",
+            "observations": 5,
+            "method": "Historical pilot mean tokens times current maximum call count; does not validate new tools or model quality"
+          }
+        },
+        "assumptions": [
+          "Measured source and entity strings; four query rewrites at most",
+          "Answer/judge bounds use full declared request ceilings, not expected actual prompt sizes",
+          "No fresh inference, no remote discovery, no assumption that cached responses are fresh trials",
+          "Includes two new memory searches per Hermes/application execution; application turn/entity allowance is conservative",
+          "Optional initial tool probes and repairs are excluded and must be separately planned; no repair is enabled"
+        ]
+      },
+      "approved": false
+    },
+    "hermes": {
+      "question_count": 500,
+      "modes": [
+        "hermes"
+      ],
+      "launch_strategy": "full_baseline",
+      "cost": {
+        "uncached_upper_bound_usd": "12.48303268",
+        "stage_costs": {
+          "embedding": "4.01967268",
+          "answer": "3.31776",
+          "judge": "5.1456"
+        },
+        "stages": {
+          "embedding": {
+            "input_tokens": 401967268,
+            "output_tokens": 0,
+            "calls": 104719
+          },
+          "answer": {
+            "input_tokens": 49152000,
+            "output_tokens": 1536000,
+            "calls": 1500
+          },
+          "judge": {
+            "input_tokens": 16384000,
+            "output_tokens": 256000,
+            "calls": 500
+          }
+        },
+        "distinct_document_entity_vectors": 394138,
+        "storage": {
+          "policy": "rolling",
+          "peak_instance_vectors": 903,
+          "conservative_projection_disk_bytes": 1547173888,
+          "note": "Scratch/cache planning allowance; check free disk again before launch. Rolling evicts per-instance embedding cache and index after terminal outcomes."
+        },
+        "price_blockers": [],
+        "expected_usd": null,
+        "historical_scenarios": {
+          "answer": {
+            "projected_usd": "0.30019500",
+            "observations": 6,
+            "method": "Historical pilot mean tokens times current maximum call count; does not validate new tools or model quality"
+          },
+          "judge": {
+            "projected_usd": "0.08037000",
+            "observations": 5,
+            "method": "Historical pilot mean tokens times current maximum call count; does not validate new tools or model quality"
+          }
+        },
+        "assumptions": [
+          "Measured source and entity strings; four query rewrites at most",
+          "Answer/judge bounds use full declared request ceilings, not expected actual prompt sizes",
+          "No fresh inference, no remote discovery, no assumption that cached responses are fresh trials",
+          "Includes two new memory searches per Hermes/application execution; application turn/entity allowance is conservative",
+          "Optional initial tool probes and repairs are excluded and must be separately planned; no repair is enabled"
+        ]
+      },
+      "approved": false
+    }
+  },
+  "ledger": {
+    "calls": 83,
+    "spent_or_reserved_usd": "0.00752852",
+    "cap_usd": "1",
+    "call_cap": 100
+  },
+  "activity": {
+    "new_paid_requests": 0,
+    "new_inference_cost_usd": "0",
+    "public_dataset_download": true,
+    "fine_tuning_uploads": 0,
+    "policy_migrations_applied": 0
+  },
+  "readiness": {
+    "offline_full_evaluation_launch_path": "implemented",
+    "full_dataset_validation": "passed",
+    "live_quality": "unverified after architecture changes",
+    "deadline_runtime": "unverified; sequential embedding request volume is a material risk",
+    "paid_launch": "awaits operator approval and current account prerequisites"
+  },
+  "free_disk_bytes": 6842925056,
+  "verification": {
+    "pytest_passed": 88,
+    "pytest_skipped": 0,
+    "elapsed_seconds": 163.96,
+    "pinned_hermes_scripted_transport": true,
+    "agent_service_scripted_route": true,
+    "paid_provider_calls": 0,
+    "ruff_check": "passed",
+    "full_s_plans_validated": [
+      "paired_500_ids_1000_outcomes",
+      "hermes_500_ids_500_outcomes"
+    ],
+    "test_files": [
+      "tests/unit/test_architecture_launch_review.py",
+      "tests/unit/test_experiment_pipeline.py",
+      "tests/unit/test_benchmark_harness.py",
+      "tests/unit/test_context_budget.py",
+      "tests/unit/test_provider_formats.py",
+      "tests/unit/test_provider_routing.py",
+      "tests/integration/test_hermes_execution.py",
+      "tests/integration/test_agent_loop.py"
+    ]
+  }
+}

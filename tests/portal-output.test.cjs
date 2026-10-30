@@ -6,7 +6,7 @@ const vm = require('node:vm');
 function portal(turn) {
   const elements = new Map();
   function element() {
-    return { textContent: '', isConnected: true, children: [], addEventListener() {}, append(...items) { this.children.push(...items); } };
+    return { textContent: '', isConnected: true, children: [], attributes: {}, hidden: false, addEventListener() {}, focus() {}, setAttribute(key,value) {this.attributes[key] = value;}, removeAttribute(key) {delete this.attributes[key];}, replaceChildren(...items) {this.children = items;}, append(...items) { this.children.push(...items); } };
   }
   const scheduled = [];
   const context = vm.createContext({
@@ -22,7 +22,7 @@ function portal(turn) {
   vm.runInContext(fs.readFileSync('apps/api/static/portal.js', 'utf8'), context);
   vm.runInContext("token = 'test-token'", context);
   context.reply = element();
-  return { context, scheduled, reply: context.reply };
+  return { context, scheduled, reply: context.reply, elements };
 }
 
 test('shows the API top-level answer rather than a JSON status', async () => {
@@ -63,4 +63,35 @@ test('does not poll replies removed by disconnect', async () => {
   await vm.runInContext("pollTurn('turn-id', reply)", p.context);
   assert.equal(p.reply.textContent, '');
   assert.equal(p.scheduled.length, 0);
+});
+
+test('debug starts closed and opening correlation never opens the inspector', async () => {
+  const p = portal({note: 'fixture', sessions: []});
+  assert.equal(vm.runInContext('debugOpen', p.context), false);
+  await vm.runInContext("runCorrelation('fixture')", p.context);
+  assert.equal(vm.runInContext('debugOpen', p.context), false);
+});
+
+test('debug renders untrusted evidence as text rather than executable HTML', () => {
+  const p = portal({});
+  vm.runInContext("renderDebugValue({text: '<img src=x onerror=alert(1)>'})", p.context);
+  const content = p.elements.get('debug-content');
+  assert.match(content.children[0].textContent, /<img src=x/);
+  assert.equal(content.children[0].innerHTML, undefined);
+});
+
+test('debug closes back to chat without retaining its tools in the normal view', () => {
+  const p = portal({});
+  vm.runInContext('debugOpen = true; setDebugOpen(false)', p.context);
+  assert.equal(p.elements.get('debug-panel').hidden, true);
+  assert.equal(p.elements.get('tools-nav').hidden, true);
+  assert.equal(p.elements.get('debug-toggle').attributes['aria-expanded'], 'false');
+});
+
+test('an old completed reply does not replace a newer active trace or release its submit guard', async () => {
+  const p = portal({status:'COMPLETED', answer:'Old answer'});
+  vm.runInContext("activeTurnId = 'new-turn'; latestTurn = {turn_id:'new-turn'}; chatBusy = true", p.context);
+  await vm.runInContext("pollTurn('old-turn', reply)", p.context);
+  assert.equal(vm.runInContext('latestTurn.turn_id', p.context), 'new-turn');
+  assert.equal(vm.runInContext('chatBusy', p.context), true);
 });

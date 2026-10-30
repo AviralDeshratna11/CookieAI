@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CookieAI · Your work, remembered</title><link rel="stylesheet" href="/assets/portal.css"><script src="/assets/portal.js?v=20261026-2" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CookieAI · Your work, remembered</title><link rel="stylesheet" href="/assets/portal.css?v=20261030-chat"><script src="/assets/portal.js?v=20261030-chat" defer></script></head>
 <body>
 <div class="shell">
 <header class="topbar">
-<div class="topbar-brand"><span class="mark">c·</span><span class="brand-name">CookieAI</span></div>
+<div class="topbar-brand"><button id="history-toggle" class="ghost history-toggle" type="button" aria-expanded="false" aria-controls="conversation-list">☰ <span class="sr-only">Conversations</span></button><span class="mark">c·</span><span class="brand-name">CookieAI</span></div>
 <div class="topbar-actions">
+<span id="model-label" class="model-label" hidden>Memory assistant</span>
+<button id="debug-toggle" class="debug-toggle" type="button" aria-expanded="false" aria-controls="debug-panel" hidden><span aria-hidden="true">⌘</span> Debug</button>
 <span id="health" class="status-dot" hidden></span>
 <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle color theme">
   <svg id="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
@@ -19,7 +21,7 @@
 <div class="auth-card">
 <span class="mark large">c·</span>
 <h1>Connect your workspace</h1>
-<p>Persistent memory for your work, correlated automatically across every past conversation.</p>
+<p>A calm place for ideas, with memory that stays useful between conversations.</p>
 <form id="connect-form">
 <label for="token" class="sr-only">Workspace access token</label>
 <input id="token" type="password" autocomplete="off" placeholder="Workspace access token" required>
@@ -35,7 +37,8 @@
 <aside class="rail">
   <button id="new-conversation" class="new-chat-btn" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>New chat</span></button>
   <div id="conversation-list" class="conversation-list"></div>
-  <nav class="rail-secondary" aria-label="Workspace tools">
+  <p class="rail-caption">YOUR CONVERSATIONS</p>
+  <nav id="tools-nav" class="rail-secondary" aria-label="Debug workspace tools" hidden>
     <button data-view="chat" class="rail-item" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H8l-4 4z"/></svg><span>Chat</span></button>
     <button data-view="brief" class="rail-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h10l4 4v14H5z"/><path d="M9 11h6M9 15h6"/></svg><span>Brief</span></button>
     <button data-view="runs" class="rail-item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span>Tasks</span></button>
@@ -47,14 +50,16 @@
 <main class="main">
 <section id="view-chat" class="view chat-view" aria-current="page">
   <div class="chat-area">
-    <div class="chat-header"><h1>Chat</h1><button id="toggle-correlation" class="pill-btn" type="button" aria-pressed="false">Related<span id="correlation-count" class="count-badge" hidden>0</span></button></div>
+    <div class="chat-header"><div><span class="workspace-kicker">A LITTLE CONTEXT GOES A LONG WAY</span><h1>Your space to think.</h1><p>Pick up where you left off. Your memory comes with you.</p></div><button id="toggle-correlation" class="pill-btn" type="button" aria-pressed="false" hidden>Related<span id="correlation-count" class="count-badge" hidden>0</span></button></div>
     <p id="chat-demo-note" class="chat-demo-note" hidden>This is the synthetic demo: there's no live model configured, so chat replies will show "could not complete" within about a minute — that's expected here, not a bug. The <strong>Related</strong> panel still works fully, since it's pure retrieval, not generation.</p>
-    <div id="messages" class="messages" role="log" aria-live="polite"><p class="empty-chat">Ask about anything you've shared with CookieAI. Related moments from <em>every</em> past conversation are correlated automatically — no session token required.</p></div>
+    <div id="messages" class="messages" role="log" aria-live="polite"><p class="empty-chat">Ask about anything you've shared with CookieAI. Relevant details from your authorized history are available when you need them.</p></div>
+    <div id="chat-suggestions" class="chat-suggestions"><button type="button" data-prompt="What were the key decisions in my previous conversations?">Pick up a previous idea <span>↗</span></button><button type="button" data-prompt="Connect the relevant information I have shared about my current project.">Connect the dots <span>↗</span></button><button type="button" data-prompt="Help me turn my current project notes into a clear next step.">Find my next step <span>↗</span></button></div>
     <form id="chat-form" class="composer">
       <label for="message" class="sr-only">Message</label>
-      <textarea id="message" name="message" rows="1" required maxlength="16000" placeholder="Message CookieAI…"></textarea>
+      <textarea id="message" name="message" rows="1" required maxlength="16000" placeholder="Ask anything, or pick up where you left off…"></textarea>
       <button type="submit" class="send" aria-label="Send message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
     </form>
+    <p class="composer-note">Your conversations, connected. Access and sharing stay under your control. <button id="cancel-reply" type="button" class="ghost" hidden>Cancel reply</button></p>
   </div>
   <aside id="correlation-panel" class="correlation-panel" aria-label="Correlated memories" hidden>
     <div class="correlation-head"><h2>Correlated across sessions</h2><button id="close-correlation" class="icon-btn" type="button" aria-label="Close panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -77,6 +82,19 @@
 </main>
 </div>
 </div>
+<aside id="debug-panel" class="debug-panel" aria-label="Workspace debug inspector" hidden>
+  <header class="debug-head"><div><span class="workspace-kicker">UNDER THE SURFACE</span><h2>Workspace inspector</h2></div><button id="debug-close" class="icon-btn" type="button" aria-label="Close debug inspector">×</button></header>
+  <p class="debug-hint">Actual service state and authorized evidence. Opening this panel does not run a model.</p>
+  <nav id="debug-tabs" class="debug-tabs" aria-label="Inspector sections">
+    <button type="button" data-debug="process" aria-pressed="true">Process</button><button type="button" data-debug="sessions" aria-pressed="false">Sessions</button><button type="button" data-debug="memory" aria-pressed="false">Memory</button><button type="button" data-debug="sharing" aria-pressed="false">Sharing</button><button type="button" data-debug="retrieval" aria-pressed="false">Retrieval</button><button type="button" data-debug="transfer" aria-pressed="false">Transfer</button><button type="button" data-debug="connections" aria-pressed="false">Connections</button>
+  </nav>
+  <div class="debug-toolbar"><span id="debug-section-title">Process</span><button id="debug-refresh" class="ghost" type="button">Refresh</button></div>
+  <div id="debug-content" class="debug-content" aria-live="polite">Send a message to inspect its memory pipeline.</div>
+  <details class="debug-actions"><summary>Memory search and explicit sharing</summary>
+    <form id="debug-search-form"><label>Search your authorized memories<input name="query" maxlength="4000" required placeholder="A project, preference, or decision"></label><button class="secondary">Retrieve</button><p class="hint">Explicit retrieval may use the configured embedding provider.</p></form>
+    <form id="debug-share-form"><label>Share marked memories with user ID<input name="user_id" required placeholder="User UUID"></label><button class="secondary">Grant read access</button><p class="hint">Only memories you explicitly mark as SHARED are eligible. Conversation history is never shared automatically with another user.</p></form>
+  </details>
+</aside>
 <div id="notice" role="status" aria-live="polite"></div>
 </div>
 </body></html>

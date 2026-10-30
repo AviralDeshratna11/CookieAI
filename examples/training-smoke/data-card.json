@@ -1,0 +1,15 @@
+{
+  "synthetic": true,
+  "purpose": "Offline pipeline smoke data, not a production training corpus",
+  "examples": 24,
+  "categories": {
+    "abstention": 4,
+    "calendar": 4,
+    "evidence": 4,
+    "preference": 4,
+    "tool_protocol": 4,
+    "update": 4
+  },
+  "redaction": "No real-user data generated; custom corpus consent/review required",
+  "revoked_sources": []
+}

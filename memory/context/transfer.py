@@ -37,6 +37,20 @@ class ContextTransferService:
         packet = compose(hits, body.token_budget, self.memory.token_counter).model_dump(
             mode="json"
         )
+        from memory.retrieval.correlation import build_correlation
+
+        packed_ids = {
+            item["memory_id"]
+            for items in packet.values()
+            if isinstance(items, list)
+            for item in items
+            if isinstance(item, dict) and "memory_id" in item
+        }
+        related = build_correlation(
+            [hit for hit in hits if str(hit.memory.memory_id) in packed_ids],
+            body.query,
+            current_session_id=ctx.session_id,
+        )
         goals = GoalService(self.memory).list(ctx)
         if sender_ctx:
             sender_goals = {
@@ -44,6 +58,17 @@ class ContextTransferService:
             }
             goals = [item for item in goals if item["goal_id"] in sender_goals]
         result = {
+            "current_session_id": str(ctx.session_id),
+            "related_sessions": [
+                {
+                    "session_id": item["session_id"],
+                    "relevance": item["relevance"],
+                    "shared_terms": item["shared_terms"],
+                    "entities": item["entities"],
+                    "memory_ids": [memory["memory_id"] for memory in item["memories"]],
+                }
+                for item in related["sessions"]
+            ],
             "user_identity": {"user_id": str(ctx.user_id)},
             "relevant_profile": [],
             "active_projects": [],

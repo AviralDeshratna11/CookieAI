@@ -1,0 +1,376 @@
+{
+  "schema_version": 1,
+  "seed": 941,
+  "artifacts": {
+    "train": {
+      "file": "examples\\training-smoke\\train.jsonl",
+      "sha256": "641832baf4d1299ebee199ccfcec49b191ab2761b22051eaae6292016ba48aa1",
+      "examples": 20,
+      "token_upper_bound": 5458
+    },
+    "validation": {
+      "file": "examples\\training-smoke\\validation.jsonl",
+      "sha256": "aa1c6b8e41a8e07387a2ad2ecff2d694df7ba760d75e96fbb79eb3b1d1c3e296",
+      "examples": 2,
+      "token_upper_bound": 857
+    },
+    "test": {
+      "file": "examples\\training-smoke\\test.jsonl",
+      "sha256": "794c65db676c33b086f08396aec699ac21f3ec0a59e24648ff4322f07719c03c",
+      "examples": 2,
+      "token_upper_bound": 358
+    }
+  },
+  "examples": [
+    {
+      "example_id": "authored-941-0",
+      "group_id": "authored-person-0",
+      "sources": [
+        "authored-person-0"
+      ],
+      "source_hashes": [
+        "5dd7b9b2f249882173dff5cd44a9a8beac3dd880b89a6be7bbe58c3794958ea2"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "calendar"
+    },
+    {
+      "example_id": "authored-941-1",
+      "group_id": "authored-person-1",
+      "sources": [
+        "authored-person-1"
+      ],
+      "source_hashes": [
+        "43c672363f6de89ee4f9241a0671e89b63f4305bda8d913d103c2f16731dd84e"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "update"
+    },
+    {
+      "example_id": "authored-941-2",
+      "group_id": "authored-person-2",
+      "sources": [
+        "authored-person-2"
+      ],
+      "source_hashes": [
+        "fea9e3c801f9a6e66cae37097fbba4d0cb22df3bce046e20a4a927a2e50b3319"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "evidence"
+    },
+    {
+      "example_id": "authored-941-3",
+      "group_id": "authored-person-3",
+      "sources": [
+        "authored-person-3"
+      ],
+      "source_hashes": [
+        "69a599016e181ede3c6d051dae1298276384da949ed5e27c14e2e02030fcb9cc"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "preference"
+    },
+    {
+      "example_id": "authored-941-4",
+      "group_id": "authored-person-4",
+      "sources": [
+        "authored-person-4"
+      ],
+      "source_hashes": [
+        "f4dfe75b3b79cd1f3a235d346c70b1234e9d0bb46d5d72777771946f2082e53a"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "abstention"
+    },
+    {
+      "example_id": "authored-941-5",
+      "group_id": "authored-person-5",
+      "sources": [
+        "authored-person-5"
+      ],
+      "source_hashes": [
+        "e58b2b2de23865a2683668e3b627f3f6b9e115b16a1e84630ba3289b5ecabe74"
+      ],
+      "split": "validation",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "tool_protocol"
+    },
+    {
+      "example_id": "authored-941-6",
+      "group_id": "authored-person-6",
+      "sources": [
+        "authored-person-6"
+      ],
+      "source_hashes": [
+        "c924a15539beb24c450ee0eb550035216686ab309df1ca4e51060638bd2b7be3"
+      ],
+      "split": "test",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "calendar"
+    },
+    {
+      "example_id": "authored-941-7",
+      "group_id": "authored-person-7",
+      "sources": [
+        "authored-person-7"
+      ],
+      "source_hashes": [
+        "066929887ba112c04ec7ef66b86df48e443236f4db5c7f1413b2547788148e91"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "update"
+    },
+    {
+      "example_id": "authored-941-8",
+      "group_id": "authored-person-8",
+      "sources": [
+        "authored-person-8"
+      ],
+      "source_hashes": [
+        "44857ff344f780554b6891bc140e0df2545cc206102ee1ac8b37fb9213eb5e28"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "evidence"
+    },
+    {
+      "example_id": "authored-941-9",
+      "group_id": "authored-person-9",
+      "sources": [
+        "authored-person-9"
+      ],
+      "source_hashes": [
+        "79b1ee9788d4be243e72bf4b12e8a9e1437a68fa20ba33369682fa0fede5754b"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "preference"
+    },
+    {
+      "example_id": "authored-941-10",
+      "group_id": "authored-person-10",
+      "sources": [
+        "authored-person-10"
+      ],
+      "source_hashes": [
+        "d046a23a650accabaf06c32aee3f4ff7e15882d94371c937c67a6a43a75a20d0"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "abstention"
+    },
+    {
+      "example_id": "authored-941-11",
+      "group_id": "authored-person-11",
+      "sources": [
+        "authored-person-11"
+      ],
+      "source_hashes": [
+        "b29649cf351455712f0e209c4de9a21161bbeab1d9f550ba63fcc5f6504c7f15"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "tool_protocol"
+    },
+    {
+      "example_id": "authored-941-12",
+      "group_id": "authored-person-12",
+      "sources": [
+        "authored-person-12"
+      ],
+      "source_hashes": [
+        "0dc6e2af3e0a27120aab15cc6e5967fd0db68235be98af1e36e6b0b391e9fe96"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "calendar"
+    },
+    {
+      "example_id": "authored-941-13",
+      "group_id": "authored-person-13",
+      "sources": [
+        "authored-person-13"
+      ],
+      "source_hashes": [
+        "f6200959c7f6fe913ada9b16e403a4d73be819e4a1c5a9b29489d5f2767e54be"
+      ],
+      "split": "validation",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "update"
+    },
+    {
+      "example_id": "authored-941-14",
+      "group_id": "authored-person-14",
+      "sources": [
+        "authored-person-14"
+      ],
+      "source_hashes": [
+        "5dbe51b93951ff6f48fe4af90bb3cc0596bcef72628721c439c258c95639c9cb"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "evidence"
+    },
+    {
+      "example_id": "authored-941-15",
+      "group_id": "authored-person-15",
+      "sources": [
+        "authored-person-15"
+      ],
+      "source_hashes": [
+        "e35526ad04736319410ec0216d168a0f86be8fb6e3cace31cb97b9d1a44328c5"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "preference"
+    },
+    {
+      "example_id": "authored-941-16",
+      "group_id": "authored-person-16",
+      "sources": [
+        "authored-person-16"
+      ],
+      "source_hashes": [
+        "483ba7cdacb5c72ee6c673320f57876937183311974da15303884225646297e9"
+      ],
+      "split": "test",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "abstention"
+    },
+    {
+      "example_id": "authored-941-17",
+      "group_id": "authored-person-17",
+      "sources": [
+        "authored-person-17"
+      ],
+      "source_hashes": [
+        "b57435ebcbe210b4a369ccd15eee7bb76a814d0022762286c69c0cf312e8da71"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "tool_protocol"
+    },
+    {
+      "example_id": "authored-941-18",
+      "group_id": "authored-person-18",
+      "sources": [
+        "authored-person-18"
+      ],
+      "source_hashes": [
+        "284411022ce72a5b13eb2466b4cafd16367e142883295c3efc6cef0fde14935c"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "calendar"
+    },
+    {
+      "example_id": "authored-941-19",
+      "group_id": "authored-person-19",
+      "sources": [
+        "authored-person-19"
+      ],
+      "source_hashes": [
+        "529bf1578dbdd64cd66c78a8e0b1b415f33ab76fc5abc554d4da607ecc0cd16a"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "update"
+    },
+    {
+      "example_id": "authored-941-20",
+      "group_id": "authored-person-20",
+      "sources": [
+        "authored-person-20"
+      ],
+      "source_hashes": [
+        "43035b6b57acfff1e337c73234b4e7fa212d93f961456f73f87655697985850d"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "evidence"
+    },
+    {
+      "example_id": "authored-941-21",
+      "group_id": "authored-person-21",
+      "sources": [
+        "authored-person-21"
+      ],
+      "source_hashes": [
+        "6a9477ea69a3206afb077383b4985744910d58d7b7fd352909fc46dffb933284"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "preference"
+    },
+    {
+      "example_id": "authored-941-22",
+      "group_id": "authored-person-22",
+      "sources": [
+        "authored-person-22"
+      ],
+      "source_hashes": [
+        "b1aa14bd8b03b5c129302d7531dd34c171ff1063cc6fc09c4cfc7ca3a1e6fccc"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "abstention"
+    },
+    {
+      "example_id": "authored-941-23",
+      "group_id": "authored-person-23",
+      "sources": [
+        "authored-person-23"
+      ],
+      "source_hashes": [
+        "31276eacb9c474de826f680d9db06f219ea7a7eba7e6c997e25f91abff41899e"
+      ],
+      "split": "train",
+      "origin": "independent_synthetic",
+      "permission": "Repository-authored synthetic fixture; development use",
+      "category": "tool_protocol"
+    }
+  ],
+  "excluded": [],
+  "benchmark_instances_checked": 7,
+  "development_exposed_ids": [
+    "9d25d4e0",
+    "gpt4_1e4a8aeb",
+    "35a27287",
+    "2698e78f",
+    "f685340e_abs",
+    "7a8d0b71",
+    "a82c026e"
+  ],
+  "leakage_check": "group/source/hash components plus normalized 12-word overlap; not proof against semantic paraphrases",
+  "provider_schema_status": "chat/tool JSONL generated; exact selected-model training-schema verification required before upload",
+  "uploaded": false
+}

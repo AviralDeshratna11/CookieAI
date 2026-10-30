@@ -27,7 +27,9 @@ Jinja2==3.1.6
 jiter==0.17.0
 markdown-it-py==4.2.0
 MarkupSafe==3.0.4
-setuptools==65.5.0
+setuptools==65.5.0; python_version < "3.12"
+setuptools==75.8.0; python_version >= "3.12"
+wheel==0.45.1
 mdurl==0.1.2
 msgpack==1.2.3
 multidict==7.1.0

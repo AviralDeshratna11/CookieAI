@@ -1,0 +1,38 @@
+{
+  "benchmark": "MemoryArena-proxy (NOT the official benchmark)",
+  "mode": "live",
+  "scenario_count": 4,
+  "overall_recall": 1.0,
+  "scenarios": [
+    {
+      "id": "vegetarian_shellfish_allergy",
+      "family": "preference-constrained planning",
+      "recall": 1.0,
+      "prediction": "Based on your preferences, here is a **vegetarian, shellfish-free dinner menu**:\n\n**Appetizer**\n*   **Roasted Red Pepper & Tomato Soup** served with garlic-herb croutons.\n*   *Alternative:* **Whipped Ricotta & Honey Crostini** with toasted pine nuts and fresh thyme.\n\n**Main Course (Choose One)**\n*   **Wild Mushroom Risotto** \u2013 Creamy arborio rice with a mix of cremini, shiitake, and oyster mushrooms, finished with white wine, parmesan, and truffle oil.\n*   **Spinach & Ricotta Stuffed Shells** \u2013 Jumbo pasta shells baked in a San Marzano tomato sauce with mozzarella, parmesan, and fresh basil.\n*   **Crispy Tofu & Vegetable Stir-Fry** \u2013 Pressed tofu cubes with broccoli, bell peppers, snap peas, and carrots in a ginger-garlic-soy glaze, served over jasmine rice or soba noodles.\n*   **Lentil & Walnut \"Bolognese\"** \u2013 A hearty, plant-based ragu served over pappardelle or rigatoni, topped with vegan parmesan or nutritional yeast.\n\n**Side**\n*   **Lemon-Garlic Roasted Asparagus** with almonds.\n*   **Kale",
+      "applied_correctly": true
+    },
+    {
+      "id": "shared_drive_password_location",
+      "family": "progressive information search",
+      "recall": 1.0,
+      "prediction": "The password to the shared drive is stored in the file called **'onboarding-notes'**.",
+      "applied_correctly": true
+    },
+    {
+      "id": "budget_update_carried_forward",
+      "family": "knowledge update applied to a later decision",
+      "recall": 1.0,
+      "prediction": "Your current trip budget is **$1500**.",
+      "applied_correctly": true
+    },
+    {
+      "id": "no_early_meetings_constraint",
+      "family": "preference-constrained planning",
+      "recall": 1.0,
+      "prediction": "I cannot schedule a meeting for you at 9am tomorrow. According to your preferences, I should never schedule meetings before 10am for you. Would you like me to schedule it for 10am or later instead?",
+      "applied_correctly": true
+    }
+  ],
+  "coverage_note": "Covers preference-constrained planning, progressive information search, and knowledge-update-applied-to-a-later-decision in miniature. Does NOT cover web navigation or sequential formal reasoning task families; this project has no execution environment for those.",
+  "overall_applied_correctly": 1.0
+}

@@ -1,0 +1,1168 @@
+{
+  "benchmark": "LongMemEval",
+  "manifest": {
+    "schema": 1,
+    "benchmark": "LongMemEval",
+    "dataset_profile": "synthetic",
+    "dataset_sha256": "242f61b551b7da7766ea3f2f024b2998936aebe81488406660d5abf32718e059",
+    "question_ids": [
+      "synthetic_update_1",
+      "synthetic_preference_1",
+      "synthetic_missing_abs",
+      "synthetic_temporal_1"
+    ],
+    "heldout_ids": [],
+    "seed": 42,
+    "split": "development",
+    "heldout_fraction": 0.2,
+    "modes": [
+      "direct",
+      "hermes"
+    ],
+    "config": {
+      "context_tokens": 32768,
+      "evidence_tokens": 12000,
+      "output_tokens": 1024,
+      "judge_output_tokens": 512,
+      "answer": {
+        "base_url": "https://api.tokenfactory.nebius.com/v1",
+        "api_key_env": "NEBIUS_API_KEY",
+        "model": "nvidia/Nemotron-3_5-Lightning",
+        "context_tokens": 32768,
+        "template_reserve_tokens": 1024,
+        "timeout_seconds": 60,
+        "attempts": 1,
+        "bounded_output_verified": true,
+        "pricing": {
+          "input": "0.06",
+          "output": "0.24",
+          "currency": "USD",
+          "unit": "per_million_tokens",
+          "output_includes_reasoning": true,
+          "verified_on": "2026-10-29",
+          "source_url": "https://nebius.com/services/token-factory/models/nvidia-nemotron-models-inference"
+        },
+        "completion_limit_parameter": "max_completion_tokens"
+      },
+      "judge": {
+        "base_url": "https://api.tokenfactory.nebius.com/v1",
+        "api_key_env": "NEBIUS_API_KEY",
+        "model": "nvidia/nemotron-3-super-120b-a12b",
+        "context_tokens": 32768,
+        "template_reserve_tokens": 1024,
+        "timeout_seconds": 60,
+        "attempts": 1,
+        "bounded_output_verified": true,
+        "pricing": {
+          "input": "0.30",
+          "output": "0.90",
+          "currency": "USD",
+          "unit": "per_million_tokens",
+          "output_includes_reasoning": true,
+          "verified_on": "2026-10-29",
+          "source_url": "https://nebius.com/services/token-factory/models/nvidia-nemotron-models-inference"
+        },
+        "completion_limit_parameter": "max_completion_tokens"
+      },
+      "embedding": {
+        "backend": "hash-test",
+        "dimensions": 64,
+        "batch_size": 1,
+        "batching_verified": false,
+        "version": "1",
+        "input_type_mode": "prefix",
+        "document_prefix": "",
+        "query_prefix": "",
+        "note": "Synthetic fixtures only. For real paid datasets use backend compatible and add an independently priced route, exact model and dimensions."
+      },
+      "hermes": {
+        "python": ".hermes-runtime/venv/Scripts/python.exe",
+        "source": ".hermes-runtime/source/hermes-agent-1f6efd6eb0ba6b573c73c96d14dff1be4454823d",
+        "timeout_seconds": 120
+      }
+    },
+    "top_k": 20,
+    "neighbors": 1,
+    "preprocessing_version": "timestamped-turn-chunks-v1",
+    "code": {
+      "git_head": "4cda94a14a231e9974478544168e51cfce825ffc",
+      "source_tree_sha256": "606c677c11d2dfbb7a2cf1bc6271207103cf49de2cbef292ffe123cbdbfd06f0"
+    },
+    "prompt_sha256": "9d7b62f700e318abcf5a30c35abeb67e7d7c8f8b9e9604a0aee73f82722c8acc",
+    "scope": "MemoryService retrieval + HermesBackend; excludes AgentService durable turn/context-transfer/learning stages",
+    "concurrency": 1,
+    "retrieval_rounds": 1,
+    "timezone": "dataset unspecified; naive dates retained in evidence; UTC storage convention only",
+    "retrieval_metric": "evidence-session coverage, not gold answer-turn recall",
+    "oracle_diagnostic": false,
+    "embedding_quality": "lexical test double",
+    "judge_relationship": "independently configured",
+    "execution": "live",
+    "hermes_pin": {
+      "repository": "https://github.com/NousResearch/hermes-agent",
+      "commit": "1f6efd6eb0ba6b573c73c96d14dff1be4454823d",
+      "release": "v2026.4.3 / 0.7.0",
+      "license": "MIT",
+      "scope": "experimental Python 3.11 pilot; not a current-release security attestation",
+      "interface_sha256": {
+        "run_agent.py": "e790ce58bd381b26264fbfb47562d62fd1c3fe33ff334d834e78639d64e80a5a",
+        "model_tools.py": "72a4e7f7ff229043e4bde84fb0951b1e8bcac03aa453ee8c5fde3672979ce4f3",
+        "toolsets.py": "74864efb0f16559043c2b64dec85393bdb283ac1b26c247490155ae107e8ccbb",
+        "tools/registry.py": "d5a45a9f69d40d1da452228b33e715f4c563cbc66587c55d7b7b7e56c5bd04df",
+        "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6"
+      },
+      "archive_sha256": "fd9b5d1adee02756b582c22369e703a8911d86231947b152c6f6b94485a027df"
+    },
+    "evaluator": {
+      "repository": "https://github.com/xiaowu0162/LongMemEval",
+      "path": "src/evaluation/evaluate_qa.py",
+      "upstream_revision": "d6dc8b50a2d9ac0c99485ea28fa5755c62414c34",
+      "source_url": "https://github.com/xiaowu0162/LongMemEval/blob/d6dc8b50a2d9ac0c99485ea28fa5755c62414c34/src/evaluation/evaluate_qa.py",
+      "status": "local prompt snapshot checked against upstream evaluator on 2026-10-29",
+      "local_function": "scripts.benchmark_longmemeval.get_anscheck_prompt",
+      "protocol_deviations": [
+        "Strict complete yes/no verdicts rather than substring matching",
+        "Abstention uses documented _abs suffix rather than upstream substring matching",
+        "Configurable NVIDIA judge rather than official model_zoo grader; results are not official-grader scores"
+      ],
+      "publication_gate": "Configured NVIDIA judge scores are not official-grader scores"
+    },
+    "fingerprint": "cc247008bad4fe315acaf3d48c8a7877ef89eb5131ad52cc35fb86b94a09c4bd"
+  },
+  "planned": 8,
+  "attempted": 8,
+  "completed_answers": 5,
+  "valid_grades": 5,
+  "correct": 4,
+  "wrong": 1,
+  "status_counts": {
+    "failed": 3,
+    "graded": 5
+  },
+  "accuracy_among_valid_grades": 0.8,
+  "all_attempted_success_rate": 0.5,
+  "grade_coverage": 0.625,
+  "completion_rate": 0.625,
+  "by_type": {
+    "single-session-user": {
+      "count": 2,
+      "valid_grades": 2,
+      "accuracy": 1,
+      "mean_session_recall": null
+    },
+    "single-session-preference": {
+      "count": 2,
+      "valid_grades": 1,
+      "accuracy": 0,
+      "mean_session_recall": 1.0
+    },
+    "temporal-reasoning": {
+      "count": 2,
+      "valid_grades": 1,
+      "accuracy": 1,
+      "mean_session_recall": 1.0
+    },
+    "knowledge-update": {
+      "count": 2,
+      "valid_grades": 1,
+      "accuracy": 1,
+      "mean_session_recall": 1.0
+    },
+    "abstention": {
+      "count": 2,
+      "valid_grades": 2,
+      "accuracy": 1,
+      "mean_session_recall": null
+    }
+  },
+  "questions_detail": [
+    {
+      "question_id": "synthetic_update_1",
+      "mode": "direct",
+      "question_type": "knowledge-update",
+      "abstention": false,
+      "status": "failed",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "0a59fdf428f17e202faf166db21dfb06e8e11cd660445b1f3a33d69350794307",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 1024,
+            "prompt_tokens": 428,
+            "total_tokens": 1452,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 1024,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 428
+          },
+          "usage_missing": false,
+          "latency_ms": 3859.0000000003783,
+          "ledger_request_id": "dd6271efe1594ebd876c37444e51bc91",
+          "reserved_usd": "0.0003936",
+          "charged_or_reserved_usd": "0.00027144",
+          "finish_reasons": [
+            "length"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f",
+          "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 460,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 2,
+      "retrieved_session_ids": [
+        "new_home",
+        "old_home"
+      ],
+      "packed_session_ids": [
+        "new_home",
+        "old_home"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f",
+          "session_id": "old_home",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I live in Delhi."
+        },
+        {
+          "source_id": "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81",
+          "session_id": "new_home",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I moved to Pune today. Pune is now my home."
+        }
+      ],
+      "failure_stage": "answer",
+      "error_class": "InvalidCompletion",
+      "latency_ms": 3953.000000001339
+    },
+    {
+      "question_id": "synthetic_update_1",
+      "mode": "hermes",
+      "question_type": "knowledge-update",
+      "abstention": false,
+      "status": "graded",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "583bc1ec3f87731bc7137a71bc541d365cacc147d6761dbbbb0cecba24ab542f",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 132,
+            "prompt_tokens": 1009,
+            "total_tokens": 1141,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 1009
+          },
+          "usage_missing": false,
+          "latency_ms": 1453.0000000013388,
+          "ledger_request_id": "b8fa6231814245e78992dc975d3ae480",
+          "reserved_usd": "0.00046944",
+          "charged_or_reserved_usd": "0.00009222",
+          "finish_reasons": [
+            "stop"
+          ]
+        },
+        {
+          "stage": "judge",
+          "fingerprint": "b3546f1200d3a3d99647d71c8081786dcdc3e84bf3c07c5e07c70cef2c91a44c",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 50,
+            "prompt_tokens": 241,
+            "total_tokens": 291,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 46,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "created_cache_tokens": 0,
+              "multimodal_tokens": null
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 241
+          },
+          "usage_missing": false,
+          "latency_ms": 1844.0000000009604,
+          "ledger_request_id": "cc433b5a6a4e480a88c92cc243a79868",
+          "reserved_usd": "0.0010728",
+          "charged_or_reserved_usd": "0.0001173",
+          "finish_reasons": [
+            "stop"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f",
+          "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 460,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 2,
+      "retrieved_session_ids": [
+        "new_home",
+        "old_home"
+      ],
+      "packed_session_ids": [
+        "new_home",
+        "old_home"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f",
+          "session_id": "old_home",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I live in Delhi."
+        },
+        {
+          "source_id": "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81",
+          "session_id": "new_home",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I moved to Pune today. Pune is now my home."
+        }
+      ],
+      "prediction": "Looking at the evidence from both sessions:\n\n- In the \"old_home\" session (2025/01/20), you said: \"I live in Delhi.\"\n- In the \"new_home\" session (2025/02/03), you said: \"I moved to Pune today. Pune is now my home.\"\n\nSince the question_date is 2025/02/10 (after both sessions), and you stated in the 2025/02/03 session that Pune is now your home, your current location per the evidence is Pune.",
+      "execution": {
+        "backend": "hermes",
+        "run_id": "5c2bf964-9149-47a4-8d82-38a0153433c3",
+        "status": "COMPLETED",
+        "answer": "Looking at the evidence from both sessions:\n\n- In the \"old_home\" session (2025/01/20), you said: \"I live in Delhi.\"\n- In the \"new_home\" session (2025/02/03), you said: \"I moved to Pune today. Pune is now my home.\"\n\nSince the question_date is 2025/02/10 (after both sessions), and you stated in the 2025/02/03 session that Pune is now your home, your current location per the evidence is Pune.",
+        "task_success": null,
+        "observations": [],
+        "usage": {
+          "model_calls": 1,
+          "prompt_tokens": 1009,
+          "completion_tokens": 132,
+          "last_prompt_budget": {
+            "input_tokens": 2635,
+            "reserved_output_tokens": 1024,
+            "template_reserve_tokens": 512,
+            "total_reserved_tokens": 4171,
+            "limit": 32768,
+            "counter": "conservative_utf8_upper_bound",
+            "tokenizer_sha256": null
+          }
+        },
+        "latency_ms": 18186.99999999808
+      },
+      "correct": true,
+      "latency_ms": 20030.99999999904
+    },
+    {
+      "question_id": "synthetic_preference_1",
+      "mode": "direct",
+      "question_type": "single-session-preference",
+      "abstention": false,
+      "status": "failed",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "8bac7010893d8df132df065569f6ea524ee75f47fcbc934e0d9a735eea155fd2",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 1024,
+            "prompt_tokens": 301,
+            "total_tokens": 1325,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 1024,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 301
+          },
+          "usage_missing": false,
+          "latency_ms": 5046.999999998661,
+          "ledger_request_id": "24d7efd63d104041a53e33bc086b74d0",
+          "reserved_usd": "0.00037776",
+          "charged_or_reserved_usd": "0.00026382",
+          "finish_reasons": [
+            "length"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 237,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 1,
+      "retrieved_session_ids": [
+        "diet"
+      ],
+      "packed_session_ids": [
+        "diet"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d",
+          "session_id": "diet",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I eat vegetarian food and avoid peanuts."
+        }
+      ],
+      "failure_stage": "answer",
+      "error_class": "InvalidCompletion",
+      "latency_ms": 5078.000000001339
+    },
+    {
+      "question_id": "synthetic_preference_1",
+      "mode": "hermes",
+      "question_type": "single-session-preference",
+      "abstention": false,
+      "status": "graded",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "91ac58ae35610a40da83938551366d6ef7ea3cb620af46e4d2b4f3aad00528a2",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 49,
+            "prompt_tokens": 895,
+            "total_tokens": 944,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 895
+          },
+          "usage_missing": false,
+          "latency_ms": 1219.0000000009604,
+          "ledger_request_id": "ad355f7af55041918f196959f4d7fa25",
+          "reserved_usd": "0.00045444",
+          "charged_or_reserved_usd": "0.00006546",
+          "finish_reasons": [
+            "tool_calls"
+          ]
+        },
+        {
+          "stage": "answer",
+          "fingerprint": "843cdd6cfa0ce34eb16d78d500f4f38436daafc08dfcbf9df1a03523625e4072",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 172,
+            "prompt_tokens": 967,
+            "total_tokens": 1139,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 967
+          },
+          "usage_missing": false,
+          "latency_ms": 1813.0000000019209,
+          "ledger_request_id": "de9a0f0e0edf47e09860c78e81d6645d",
+          "reserved_usd": "0.00047316",
+          "charged_or_reserved_usd": "0.0000993",
+          "finish_reasons": [
+            "stop"
+          ]
+        },
+        {
+          "stage": "judge",
+          "fingerprint": "e57eb544274633d925f1849d8141dbcd7532565cea534b440397175fe3dcca5d",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 372,
+            "prompt_tokens": 296,
+            "total_tokens": 668,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 368,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "created_cache_tokens": 0,
+              "multimodal_tokens": null
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 296
+          },
+          "usage_missing": false,
+          "latency_ms": 3703.000000001339,
+          "ledger_request_id": "44fa76923143445bb69f28004455f766",
+          "reserved_usd": "0.0011934",
+          "charged_or_reserved_usd": "0.0004236",
+          "finish_reasons": [
+            "stop"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 237,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 1,
+      "retrieved_session_ids": [
+        "diet"
+      ],
+      "packed_session_ids": [
+        "diet"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d",
+          "session_id": "diet",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I eat vegetarian food and avoid peanuts."
+        }
+      ],
+      "prediction": "I don't have enough information to suggest a lunch for you. The only evidence available is that you eat vegetarian food and avoid peanuts (from a session on 2025/02/03). There's no information about:\n\n- What foods you enjoy or dislike beyond those preferences\n- What's available for lunch today (2025/02/10)\n- Any other dietary restrictions or preferences\n- Location or cuisine options\n\nWith just \"vegetarian\" and \"avoid peanuts,\" I could suggest something like a veggie wrap, salad, or peanut-free curry, but I can't determine what would be appropriate without knowing more about your tastes, available options, or other constraints.\n\nCould you provide more details about what kinds of vegetarian meals you enjoy, or any other dietary considerations?",
+      "execution": {
+        "backend": "hermes",
+        "run_id": "ac7dde6d-27c1-4930-91e8-6a76eb764cce",
+        "status": "COMPLETED",
+        "answer": "I don't have enough information to suggest a lunch for you. The only evidence available is that you eat vegetarian food and avoid peanuts (from a session on 2025/02/03). There's no information about:\n\n- What foods you enjoy or dislike beyond those preferences\n- What's available for lunch today (2025/02/10)\n- Any other dietary restrictions or preferences\n- Location or cuisine options\n\nWith just \"vegetarian\" and \"avoid peanuts,\" I could suggest something like a veggie wrap, salad, or peanut-free curry, but I can't determine what would be appropriate without knowing more about your tastes, available options, or other constraints.\n\nCould you provide more details about what kinds of vegetarian meals you enjoy, or any other dietary considerations?",
+        "task_success": null,
+        "observations": [
+          {
+            "event_id": "5e7b823f-b079-5f43-b5a9-0d71d5a22875",
+            "sequence": 0,
+            "tool": "cookieai_calculate",
+            "started_at": "2026-10-29T17:57:23.057574+00:00",
+            "ended_at": "2026-10-29T17:57:23.058598+00:00",
+            "success": false,
+            "error_class": "SyntaxError",
+            "phase": "FINISHED",
+            "arguments_retained": false,
+            "output_retained": false
+          }
+        ],
+        "usage": {
+          "model_calls": 2,
+          "prompt_tokens": 1862,
+          "completion_tokens": 221,
+          "last_prompt_budget": {
+            "input_tokens": 2697,
+            "reserved_output_tokens": 1024,
+            "template_reserve_tokens": 512,
+            "total_reserved_tokens": 4233,
+            "limit": 32768,
+            "counter": "conservative_utf8_upper_bound",
+            "tokenizer_sha256": null
+          }
+        },
+        "latency_ms": 19234.00000000038
+      },
+      "correct": false,
+      "latency_ms": 22953.00000000134
+    },
+    {
+      "question_id": "synthetic_missing_abs",
+      "mode": "direct",
+      "question_type": "single-session-user",
+      "abstention": true,
+      "status": "graded",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "be47a402d9a5d4f00efe262374ef155a474acb7bac0ab73da50f57a377924cb8",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 488,
+            "prompt_tokens": 294,
+            "total_tokens": 782,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 475,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 294
+          },
+          "usage_missing": false,
+          "latency_ms": 2952.999999997701,
+          "ledger_request_id": "65162d26622a45ecb38b5d7546027c56",
+          "reserved_usd": "0.0003771",
+          "charged_or_reserved_usd": "0.00013476",
+          "finish_reasons": [
+            "stop"
+          ]
+        },
+        {
+          "stage": "judge",
+          "fingerprint": "19440d55c97f9b7674d6dc6e0916cef919866b42679b214bb6893cf177d0eaaf",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 55,
+            "prompt_tokens": 125,
+            "total_tokens": 180,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 51,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "created_cache_tokens": 0,
+              "multimodal_tokens": null
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 125
+          },
+          "usage_missing": false,
+          "latency_ms": 1625.0,
+          "ledger_request_id": "4d5035192dbd4dd7ba77df34efbbcbeb",
+          "reserved_usd": "0.000978",
+          "charged_or_reserved_usd": "0.000087",
+          "finish_reasons": [
+            "stop"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": null,
+      "packed_session_recall": null,
+      "recall_note": "No gold sessions: recall undefined",
+      "packing": {
+        "selected_source_ids": [
+          "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 216,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 1,
+      "retrieved_session_ids": [
+        "bike"
+      ],
+      "packed_session_ids": [
+        "bike"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca",
+          "session_id": "bike",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "My bicycle is blue."
+        }
+      ],
+      "prediction": "The provided evidence does not contain the bicycle serial number.",
+      "correct": true,
+      "latency_ms": 4625.0
+    },
+    {
+      "question_id": "synthetic_missing_abs",
+      "mode": "hermes",
+      "question_type": "single-session-user",
+      "abstention": true,
+      "status": "graded",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "7735ca060bf277ce15a9becb29de990745e3cbf62e83d6cafb1feb8eceb514ca",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 62,
+            "prompt_tokens": 888,
+            "total_tokens": 950,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 888
+          },
+          "usage_missing": false,
+          "latency_ms": 1219.0000000009604,
+          "ledger_request_id": "33561c33b47049a88f049a5c712759f7",
+          "reserved_usd": "0.00045378",
+          "charged_or_reserved_usd": "0.00006816",
+          "finish_reasons": [
+            "stop"
+          ]
+        },
+        {
+          "stage": "judge",
+          "fingerprint": "94eb265c1d3950bda14be95a528fec546e765ea7b47d3424f1fa9c3d654e7c4f",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 58,
+            "prompt_tokens": 175,
+            "total_tokens": 233,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 54,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "created_cache_tokens": 0,
+              "multimodal_tokens": null
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 175
+          },
+          "usage_missing": false,
+          "latency_ms": 1547.0000000022992,
+          "ledger_request_id": "d7ad0dfee4f84b02b7dc08d27bafbcfb",
+          "reserved_usd": "0.0010425",
+          "charged_or_reserved_usd": "0.0001047",
+          "finish_reasons": [
+            "stop"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": null,
+      "packed_session_recall": null,
+      "recall_note": "No gold sessions: recall undefined",
+      "packing": {
+        "selected_source_ids": [
+          "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 216,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 1,
+      "retrieved_session_ids": [
+        "bike"
+      ],
+      "packed_session_ids": [
+        "bike"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca",
+          "session_id": "bike",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "My bicycle is blue."
+        }
+      ],
+      "prediction": "Based on the provided evidence, your bicycle serial number cannot be determined. The only available information is from a session on 2025/02/03 where you stated \"My bicycle is blue,\" but this does not include a serial number. The evidence is insufficient to answer the question.",
+      "execution": {
+        "backend": "hermes",
+        "run_id": "73bb45ec-74b1-4f19-9c83-56c899c55992",
+        "status": "COMPLETED",
+        "answer": "Based on the provided evidence, your bicycle serial number cannot be determined. The only available information is from a session on 2025/02/03 where you stated \"My bicycle is blue,\" but this does not include a serial number. The evidence is insufficient to answer the question.",
+        "task_success": null,
+        "observations": [],
+        "usage": {
+          "model_calls": 1,
+          "prompt_tokens": 888,
+          "completion_tokens": 62,
+          "last_prompt_budget": {
+            "input_tokens": 2374,
+            "reserved_output_tokens": 1024,
+            "template_reserve_tokens": 512,
+            "total_reserved_tokens": 3910,
+            "limit": 32768,
+            "counter": "conservative_utf8_upper_bound",
+            "tokenizer_sha256": null
+          }
+        },
+        "latency_ms": 17218.999999997322
+      },
+      "correct": true,
+      "latency_ms": 18765.99999999962
+    },
+    {
+      "question_id": "synthetic_temporal_1",
+      "mode": "direct",
+      "question_type": "temporal-reasoning",
+      "abstention": false,
+      "status": "failed",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "a526c7e9ed70dd01685597ad839d8ee7494a6364f3cbda35550c7bbe48029c82",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 1024,
+            "prompt_tokens": 564,
+            "total_tokens": 1588,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 1024,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 564
+          },
+          "usage_missing": false,
+          "latency_ms": 5514.999999999418,
+          "ledger_request_id": "a23b1b98fecc45daa1863f4bb47a5610",
+          "reserved_usd": "0.0004122",
+          "charged_or_reserved_usd": "0.0002796",
+          "finish_reasons": [
+            "length"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547",
+          "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56",
+          "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 702,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 3,
+      "retrieved_session_ids": [
+        "bike_arrival",
+        "bike_order"
+      ],
+      "packed_session_ids": [
+        "bike_arrival",
+        "bike_order"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547",
+          "session_id": "bike_order",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I ordered a bicycle today."
+        },
+        {
+          "source_id": "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56",
+          "session_id": "bike_order",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 1,
+          "chunk_index": 0,
+          "role": "assistant",
+          "text": "Let me know when the bicycle arrives."
+        },
+        {
+          "source_id": "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb",
+          "session_id": "bike_arrival",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "My bicycle arrived today."
+        }
+      ],
+      "failure_stage": "answer",
+      "error_class": "InvalidCompletion",
+      "latency_ms": 5561.999999998079
+    },
+    {
+      "question_id": "synthetic_temporal_1",
+      "mode": "hermes",
+      "question_type": "temporal-reasoning",
+      "abstention": false,
+      "status": "graded",
+      "events": [
+        {
+          "stage": "answer",
+          "fingerprint": "c7749eb967f840d4d5ab43a9cdd17a683a98f427b8779113121888e7e47e34d8",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 79,
+            "prompt_tokens": 1132,
+            "total_tokens": 1211,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 0,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": null,
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 1132
+          },
+          "usage_missing": false,
+          "latency_ms": 1110.000000000582,
+          "ledger_request_id": "09a3b9f6b9a9457889bac80ac7edbdd3",
+          "reserved_usd": "0.0004872",
+          "charged_or_reserved_usd": "0.00008688",
+          "finish_reasons": [
+            "stop"
+          ]
+        },
+        {
+          "stage": "judge",
+          "fingerprint": "9601fb09dff795b61dc1286f224c69d0c4289447dbb06819d46a642a5b7063b9",
+          "cache_hit": false,
+          "usage": {
+            "completion_tokens": 53,
+            "prompt_tokens": 279,
+            "total_tokens": 332,
+            "completion_tokens_details": {
+              "accepted_prediction_tokens": null,
+              "audio_tokens": null,
+              "reasoning_tokens": 49,
+              "rejected_prediction_tokens": null
+            },
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "created_cache_tokens": 0,
+              "multimodal_tokens": null
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 279
+          },
+          "usage_missing": false,
+          "latency_ms": 1313.0000000019209,
+          "ledger_request_id": "9953bf75f0854d23bf535144ea3c4571",
+          "reserved_usd": "0.0011295",
+          "charged_or_reserved_usd": "0.0001314",
+          "finish_reasons": [
+            "stop"
+          ]
+        }
+      ],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547",
+          "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56",
+          "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 702,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 3,
+      "retrieved_session_ids": [
+        "bike_arrival",
+        "bike_order"
+      ],
+      "packed_session_ids": [
+        "bike_arrival",
+        "bike_order"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547",
+          "session_id": "bike_order",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I ordered a bicycle today."
+        },
+        {
+          "source_id": "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56",
+          "session_id": "bike_order",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 1,
+          "chunk_index": 0,
+          "role": "assistant",
+          "text": "Let me know when the bicycle arrives."
+        },
+        {
+          "source_id": "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb",
+          "session_id": "bike_arrival",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "My bicycle arrived today."
+        }
+      ],
+      "prediction": "Based on the recorded sessions:\n\n- **Order placed**: 2025/01/20 (session date from `bike_order` session)\n- **Arrival received**: 2025/02/03 (session date from `bike_arrival` session)\n\nThe difference is 14 days.\n\n**Answer: 14 days.**",
+      "execution": {
+        "backend": "hermes",
+        "run_id": "a169bfd8-d72d-48cf-bbde-6dc42e988074",
+        "status": "COMPLETED",
+        "answer": "Based on the recorded sessions:\n\n- **Order placed**: 2025/01/20 (session date from `bike_order` session)\n- **Arrival received**: 2025/02/03 (session date from `bike_arrival` session)\n\nThe difference is 14 days.\n\n**Answer: 14 days.**",
+        "task_success": null,
+        "observations": [],
+        "usage": {
+          "model_calls": 1,
+          "prompt_tokens": 1132,
+          "completion_tokens": 79,
+          "last_prompt_budget": {
+            "input_tokens": 2931,
+            "reserved_output_tokens": 1024,
+            "template_reserve_tokens": 512,
+            "total_reserved_tokens": 4467,
+            "limit": 32768,
+            "counter": "conservative_utf8_upper_bound",
+            "tokenizer_sha256": null
+          }
+        },
+        "latency_ms": 17125.0
+      },
+      "correct": true,
+      "latency_ms": 18453.00000000134
+    }
+  ],
+  "cost": {
+    "cap_usd": "1",
+    "call_cap": 100,
+    "calls": 16,
+    "spent_or_reserved_usd": "0.00227154",
+    "states": {
+      "settled": {
+        "calls": 16,
+        "usd": "0.00227154"
+      }
+    },
+    "authority": "local conservative ledger, not provider billing"
+  },
+  "paired": {
+    "valid_pairs": 1,
+    "hermes_only_correct": 0,
+    "direct_only_correct": 0,
+    "pairs": [
+      {
+        "question_id": "synthetic_missing_abs",
+        "direct": true,
+        "hermes": true,
+        "direct_calls": 1,
+        "hermes_calls": 1
+      }
+    ],
+    "interpretation": "Small pilot counts; no established accuracy improvement"
+  }
+}

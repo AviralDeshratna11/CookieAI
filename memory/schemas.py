@@ -175,6 +175,7 @@ class MemoryPatch(StrictModel):
         None
     )
     allowed_agent_ids: list[UUID] | None = Field(default=None, max_length=100)
+    owner_type: Literal["USER", "SHARED"] | None = None
     expected_revision: int = Field(ge=1)
 
     @model_validator(mode="after")

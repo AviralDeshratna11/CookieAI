@@ -102,10 +102,21 @@ def main():
                 # tools, bypassing its persist_session=False entry-point guard.
                 return None
 
+        # Schemas originate from the trusted parent, never the model. Handlers
+        # remain in the parent; the child gets no service/database credentials.
+        extensions = request.get("extension_schemas", [])
+        if len(extensions) > 3 or any(
+            not schema.get("name", "").startswith("benchmark_") for schema in extensions
+        ):
+            raise RuntimeError("unsupported extension schema")
+        schemas = TOOL_SCHEMAS + extensions
+        names = {schema["name"] for schema in schemas}
+        if len(names) != len(schemas):
+            raise RuntimeError("duplicate tool schema")
         allowed = set(request.get("allowed_tools", TOOL_NAMES))
-        if not allowed or not allowed.issubset(TOOL_NAMES):
+        if not allowed or not allowed.issubset(names):
             raise RuntimeError("unsupported tool policy")
-        for schema in TOOL_SCHEMAS:
+        for schema in schemas:
             if schema["name"] not in allowed:
                 continue
 

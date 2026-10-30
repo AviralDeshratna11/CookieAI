@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     local_provider_urls: list[str] = Field(default_factory=list)
     handoff_enabled: bool = False
     extraction_model: str = "qwen2.5:7b"
+    assistant_model: str | None = None
+    assistant_provider_base_url: str | None = None
+    assistant_provider_api_key: SecretStr | None = None
+    assistant_completion_limit_parameter: Literal[
+        "max_tokens", "max_completion_tokens"
+    ] = "max_tokens"
+    assistant_reasoning_effort: Literal["none", "low", "medium", "high"] | None = None
     extraction_response_format: str = "json_schema"
     reflection_backend: str = "rules"
     general_discovery_enabled: bool = False

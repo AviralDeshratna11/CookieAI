@@ -56,7 +56,13 @@ class LocalQueryRewriter:
 
 
 def diverse_select(
-    scored, top_k, budget, diversity=0.15, priority_conflicts=False, counter=None
+    scored,
+    top_k,
+    budget,
+    diversity=0.15,
+    priority_conflicts=False,
+    counter=None,
+    trace=None,
 ):
     selected = []
     consumed = 0
@@ -94,4 +100,14 @@ def diverse_select(
         if consumed + cost <= budget:
             selected.append(best)
             consumed += cost
+            if trace is not None:
+                trace[str(best[0].memory_id)] = {"status": "selected", "cost": cost}
+        elif trace is not None:
+            trace[str(best[0].memory_id)] = {
+                "status": "retrieval_budget_excluded",
+                "cost": cost,
+            }
+    if trace is not None:
+        for item in remaining:
+            trace[str(item[0].memory_id)] = {"status": "ranked_out"}
     return selected

@@ -27,7 +27,28 @@ def canonicalize(text):
 
 
 class MemoryService:
-    def __init__(self, engine, embedder, extractor, settings: Settings):
+    def __init__(
+        self,
+        engine,
+        embedder,
+        extractor,
+        settings: Settings,
+        *,
+        policy_override=None,
+        search_observer=None,
+        assistant_generator=None,
+    ):
+        # Explicit dependency injection for isolated experiments. Normal callers
+        # retain the existing administrator/tenant/environment policy precedence.
+        from memory.policy import Policy
+
+        self.policy_override = (
+            Policy.model_validate(policy_override)
+            if policy_override is not None
+            else None
+        )
+        self.search_observer = search_observer
+        self.assistant_generator = assistant_generator
         self.engine, self.embedder, self.extractor, self.settings = (
             engine,
             embedder,
@@ -55,6 +76,8 @@ class MemoryService:
         return validate_vector(self.embedder.embed(text), self.embedder.dimensions)
 
     def policy(self, repo):
+        if self.policy_override is not None:
+            return self.policy_override.model_copy(deep=True)
         from database import operations_tables as operations
         from memory.policy import load_policy
 
@@ -414,6 +437,13 @@ class MemoryService:
             values.update(
                 patch.model_dump(exclude_unset=True, exclude={"expected_revision"})
             )
+            if values["owner_type"] == "SHARED" and (
+                values["privacy_class"] in {"PRIVATE", "HIGHLY_PRIVATE"}
+                or values["allowed_agent_ids"]
+            ):
+                raise ValueError(
+                    "a SHARED memory cannot be privacy-restricted or agent-restricted"
+                )
             if (
                 values["privacy_class"] in {"PRIVATE", "HIGHLY_PRIVATE"}
                 and not values["allowed_agent_ids"]
@@ -632,13 +662,38 @@ class MemoryService:
                 )
             ]
             conflicts = [item for item in scored if item[0].status.value == "DISPUTED"]
+            selection_trace = {} if self.search_observer is not None else None
             selected = diverse_select(
                 scored,
                 max(request.top_k, len(conflicts)),
                 policy.max_memory_tokens,
                 priority_conflicts=True,
                 counter=self.token_counter,
+                trace=selection_trace,
             )
+            if self.search_observer is not None:
+                self.search_observer(
+                    {
+                        "namespace_id": str(ctx.namespace_id),
+                        "query": request.query,
+                        "effective_policy": policy.model_dump(mode="json"),
+                        "counter": self.token_counter.mode,
+                        "corpus_ids": [str(m.memory_id) for m in corpus],
+                        "candidate_ids": sorted(
+                            str(identity) for identity in candidates
+                        ),
+                        "ranked": [
+                            {
+                                "memory_id": str(m.memory_id),
+                                "score": score,
+                                "tokens": self.token_counter.count(m.canonical_text),
+                            }
+                            for m, score, _ in sorted(scored, key=lambda row: -row[1])
+                        ],
+                        "selected_ids": [str(m.memory_id) for m, _, _ in selected],
+                        "selection": selection_trace,
+                    }
+                )
             from uuid import uuid4
 
             from database import operations_tables as operations

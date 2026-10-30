@@ -1,0 +1,87 @@
+{
+  "context_tokens": 32768,
+  "evidence_tokens": 12000,
+  "output_tokens": 1024,
+  "judge_output_tokens": 512,
+  "answer": {
+    "base_url": "https://api.tokenfactory.nebius.com/v1",
+    "api_key_env": "NEBIUS_API_KEY",
+    "model": "nvidia/Nemotron-3_5-Lightning",
+    "context_tokens": 32768,
+    "template_reserve_tokens": 1024,
+    "timeout_seconds": 60,
+    "attempts": 1,
+    "bounded_output_verified": true,
+    "pricing": {
+      "input": "0.06",
+      "output": "0.24",
+      "currency": "USD",
+      "unit": "per_million_tokens",
+      "output_includes_reasoning": true,
+      "verified_on": "2026-10-29",
+      "source_url": "https://nebius.com/services/token-factory/models/nvidia-nemotron-models-inference"
+    },
+    "completion_limit_parameter": "max_completion_tokens",
+    "reasoning_effort": "none"
+  },
+  "judge": {
+    "base_url": "https://api.tokenfactory.nebius.com/v1",
+    "api_key_env": "NEBIUS_API_KEY",
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "context_tokens": 32768,
+    "template_reserve_tokens": 1024,
+    "timeout_seconds": 60,
+    "attempts": 1,
+    "bounded_output_verified": true,
+    "pricing": {
+      "input": "0.30",
+      "output": "0.90",
+      "currency": "USD",
+      "unit": "per_million_tokens",
+      "output_includes_reasoning": true,
+      "verified_on": "2026-10-29",
+      "source_url": "https://nebius.com/services/token-factory/models/nvidia-nemotron-models-inference"
+    },
+    "completion_limit_parameter": "max_completion_tokens"
+  },
+  "embedding": {
+    "backend": "compatible",
+    "model_note": "Official public Qwen embeddings; exact catalog ID discovered",
+    "dimensions": 4096,
+    "version": "1",
+    "batch_size": 4,
+    "batching_verified": true,
+    "input_type_mode": "prefix",
+    "document_prefix": "",
+    "query_prefix": "Instruct: Given a question about a user conversation, retrieve relevant passages that answer the question\nQuery: ",
+    "route": {
+      "base_url": "https://api.tokenfactory.nebius.com/v1",
+      "api_key_env": "NEBIUS_API_KEY",
+      "model": "Qwen/Qwen3-Embedding-8B",
+      "context_tokens": 32768,
+      "template_reserve_tokens": 1024,
+      "timeout_seconds": 60,
+      "attempts": 1,
+      "bounded_output_verified": true,
+      "pricing": {
+        "input": "0.01",
+        "output": "0",
+        "currency": "USD",
+        "unit": "per_million_tokens",
+        "output_includes_reasoning": true,
+        "verified_on": "2026-10-29",
+        "source_url": "https://nebius.com/services/token-factory/models/qwen-models-inference"
+      },
+      "model_response_bytes": 1048576
+    }
+  },
+  "hermes": {
+    "python": ".hermes-runtime/venv/Scripts/python.exe",
+    "source": ".hermes-runtime/source/hermes-agent-1f6efd6eb0ba6b573c73c96d14dff1be4454823d",
+    "timeout_seconds": 120
+  },
+  "storage_policy": "rolling",
+  "retrieval_policy": {
+    "max_memory_tokens": 24000
+  }
+}

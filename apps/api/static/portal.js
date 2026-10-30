@@ -10,6 +10,9 @@ function newId() {
 let token = '', session = sessionStorage.getItem('cookieai-session') || newId();
 sessionStorage.setItem('cookieai-session', session);
 let policyState = null, skills = [], inspectedMemory = null, timer = null, taskCursor = null, noticeTimer = null;
+let debugOpen = false, debugSection = 'process', latestTurn = null, runtimeConfig = null, chatBusy = false;
+let historyOpen = false;
+let activeTurnId = null;
 const $ = id => document.getElementById(id);
 function notice(message) { $('notice').textContent = message; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { $('notice').textContent = ''; }, 4500); }
 function effectiveTheme() {
@@ -75,13 +78,20 @@ async function loadConversations() {
   }
 }
 
-async function openConversation(id) {
-  if (id === session) return;
+async function openConversation(id, force = false) {
+  if (chatBusy && !force) { notice('Wait for this reply before switching conversations.'); return; }
+  if (id === session && !force) return;
   switchSession(id);
+  const requestToken = token;
+  setHistoryOpen(false);
+  latestTurn = null;
+  show('chat');
   resetCorrelationPanel();
   $('messages').replaceChildren(textNode('p', 'Loading this conversation…', 'empty-chat'));
   const turns = await api('/v1/portal/conversations/' + id + '/turns');
+  if (!token || token !== requestToken || session !== id) return;
   $('messages').replaceChildren();
+  $('chat-suggestions').hidden = turns.length > 0;
   if (!turns.length) $('messages').append(textNode('p', 'This conversation has no messages yet.', 'empty-chat'));
   for (const turn of turns) {
     $('messages').append(fragmentNode('div', 'msg msg-user', [document.createTextNode(turn.message)]));
@@ -92,7 +102,12 @@ async function openConversation(id) {
 }
 
 function newConversation() {
+  if (chatBusy) { notice('Wait for this reply before starting another conversation.'); return; }
+  latestTurn = null;
+  $('chat-suggestions').hidden = false;
+  show('chat');
   switchSession(newId());
+  setHistoryOpen(false);
   $('messages').replaceChildren(textNode('p', "Ask about anything you've shared with CookieAI. Related moments from every past conversation are correlated automatically — no session token required.", 'empty-chat'));
   resetCorrelationPanel();
   loadConversations().catch(error => notice(error.message));
@@ -148,7 +163,7 @@ async function runCorrelation(message) {
     const result = await api('/v1/portal/correlate', {query: message});
     setCorrelationCount(result.sessions.length);
     renderCorrelation(result);
-    if (result.sessions.length && !correlationEverOpened) setCorrelationOpen(true);
+    // Evidence stays in the inspector; never open a technical panel over chat.
   } catch (error) {
     $('correlation-note').textContent = error.message;
   }
@@ -157,16 +172,21 @@ async function runCorrelation(message) {
 formAction('connect-form', async () => {
   token = $('token').value.trim();
   const config = await api('/v1/portal/config');
+  runtimeConfig = config;
   $('environment-note').hidden = !config.synthetic_demo && config.embedding_model !== 'hash-test';
   $('environment-note').textContent = config.synthetic_demo ? 'SYNTHETIC DEMO · test embeddings · no cloud inference or claimed learned skills' : 'Test embeddings · semantic retrieval quality is unverified';
   $('chat-demo-note').hidden = !config.synthetic_demo;
   await loadPrivacy();
-  await Promise.all([loadSources(), loadGoals(), loadSkills(), loadTasks(), loadConversations(), health()]);
+  await loadConversations();
   $('token').value = '';
   $('connect-panel').hidden = true;
   $('workspace').hidden = false;
   $('disconnect').hidden = false;
   $('health').hidden = false;
+  $('debug-toggle').hidden = false;
+  $('model-label').hidden = false;
+  $('model-label').textContent = config.model;
+  await openConversation(session, true);
   notice('Connected. Review your workspace disclosure choice before adding information.');
 });
 $('disconnect').onclick = () => {
@@ -174,6 +194,11 @@ $('disconnect').onclick = () => {
   clearTimeout(timer);
   clearTimeout(noticeTimer);
   policyState = null; inspectedMemory = null; skills = [];
+  latestTurn = null; runtimeConfig = null; chatBusy = false;
+  activeTurnId = null;
+  setDebugOpen(false);
+  $('debug-toggle').hidden = true;
+  $('model-label').hidden = true;
   $('workspace').hidden = true;
   $('connect-panel').hidden = false;
   $('disconnect').hidden = true;
@@ -207,9 +232,16 @@ async function pollTurn(id, element, attempts = 0) {
   catch (error) { setBubbleText(element, 'Could not refresh this reply: ' + error.message + '. Use Check reply to try again.', true); addReplyRefresh(id, element); return; }
   if (!token || !element.isConnected) return;
   // The turn endpoint flattens its response: answer is a top-level string.
+  const isCurrentTurn = !activeTurnId || activeTurnId === id;
+  if (isCurrentTurn) {
+    latestTurn = {...turn, turn_id: id};
+    $('cancel-reply').hidden = ['COMPLETED', 'FAILED', 'CANCELLED', 'UNCERTAIN'].includes(turn.status);
+    if (debugOpen && debugSection === 'process') renderDebugValue(latestTurn);
+  }
   const answer = typeof turn.answer === 'string' ? turn.answer : '';
   const failed = ['FAILED', 'CANCELLED', 'UNCERTAIN'].includes(turn.status) || ['FAILED', 'CANCELLED'].includes(turn.job_status);
   const finished = turn.status === 'COMPLETED' || failed;
+  if (finished && isCurrentTurn) { chatBusy = false; $('new-conversation').disabled = false; const send = $('chat-form').querySelector?.('button[type="submit"]'); if (send) send.disabled = false; }
   let message = answer;
   if (failed) message += (message ? '\n\n' : '') + (turn.status === 'CANCELLED' || turn.job_status === 'CANCELLED' ? 'This request was cancelled.' : 'This request could not complete. No new request was submitted.');
   if (!message) message = finished ? 'The request completed without an answer.' : turn.job_status === 'RUNNING' || turn.status === 'EXECUTING' ? 'CookieAI is preparing your reply…' : 'Queued. Waiting for the worker…';
@@ -224,11 +256,123 @@ function addReplyRefresh(id, element) {
   button.onclick = () => { button.remove(); showTyping(element); pollTurn(id, element); };
   element.append(document.createElement('br'), button);
 }
+
+function renderDebugValue(value) {
+  $('debug-content').replaceChildren(textNode('pre', JSON.stringify(value, null, 2)));
+}
+function setHistoryOpen(open) {
+  historyOpen = !!open;
+  document.documentElement?.setAttribute('data-history-open', String(historyOpen));
+  $('history-toggle').setAttribute?.('aria-expanded', String(historyOpen));
+}
+$('history-toggle').onclick = () => setHistoryOpen(!historyOpen);
+let debugRequest = 0;
+function setDebugOpen(open) {
+  debugOpen = !!open;
+  $('debug-panel').hidden = !debugOpen;
+  $('tools-nav').hidden = !debugOpen;
+  $('debug-toggle').setAttribute?.('aria-expanded', String(debugOpen));
+  document.documentElement?.setAttribute('data-debug-open', String(debugOpen));
+  if (debugOpen) {
+    Promise.allSettled([loadSources(), loadGoals(), loadSkills(), loadTasks(), health()]);
+    refreshDebug();
+  } else { show('chat'); $('debug-toggle').focus?.(); }
+}
+async function refreshDebug() {
+  if (!debugOpen || !token) return;
+  const request = ++debugRequest, currentSession = session, section = debugSection;
+  $('debug-section-title').textContent = section.charAt(0).toUpperCase() + section.slice(1);
+  $('debug-content').replaceChildren(textNode('p', 'Loading authorized workspace state…'));
+  try {
+    if (latestTurn?.turn_id && ['process', 'memory', 'retrieval', 'transfer'].includes(section)) latestTurn = await api('/v1/agent/turn/' + latestTurn.turn_id);
+    let value;
+    if (section === 'sessions') value = {active_session: session, conversations: await api('/v1/portal/conversations')};
+    else if (section === 'sharing') {
+      const results = await Promise.all([api('/v1/sharing/grants'), api('/v1/sharing/incoming')]);
+      value = {outgoing: results[0], incoming: results[1], policy: 'Cross-session knowledge stays in your authorized namespace. Cross-user access requires explicit grants and SHARED-marked memories.'};
+    } else if (section === 'connections') {
+      value = {configuration: await api('/v1/portal/config'), worker: await api('/v1/operations/status'), note: 'Configured routes are not proof of a successful live inference. Provider keys stay on the server. External services require their own integration and authorization.'};
+    } else if (section === 'memory') {
+      const ids = (latestTurn?.context_memory_ids || []).slice(0, 12);
+      const memories = await Promise.allSettled(ids.map(id => api('/v1/memory/' + encodeURIComponent(id))));
+      value = {memories: memories.filter(item => item.status === 'fulfilled').map(item => item.value), note: 'These are the currently authorized memories referenced by the latest reply. Search below to inspect more.'};
+    } else if (section === 'retrieval') value = {memory_ids: latestTurn?.context_memory_ids || [], related_sessions: latestTurn?.pipeline?.related_sessions || [], budget: latestTurn?.pipeline?.context_budget || {}, method: latestTurn?.pipeline?.correlation_method || 'No completed context snapshot yet', context_requires_revalidation: latestTurn?.context_requires_revalidation};
+    else if (section === 'transfer') value = {session_id: session, pipeline: latestTurn?.pipeline || null, retained_memories: latestTurn?.memory_ids || [], note: 'Context is assembled from authorized sources. Session changes do not grant access to another user. No cross-agent transfer is invented by this view.'};
+    else value = latestTurn || {state: 'Ready for a message', model: runtimeConfig?.model, layers: runtimeConfig?.layers, correlation: 'Heuristic grouping over existing retrieval; no extra reasoning call', active_session: session};
+    if (!token || !debugOpen || request !== debugRequest || currentSession !== session) return;
+    renderDebugValue(value);
+    if (section === 'sessions') {
+      for (const conversation of value.conversations) {
+        const button = textNode('button', conversation.label, 'secondary');
+        button.onclick = () => { setDebugOpen(false); openConversation(conversation.session_id, true).catch(error => notice(error.message)); };
+        $('debug-content').append(button);
+      }
+    }
+    if (section === 'memory') {
+      for (const memory of value.memories.filter(item => ['USER', 'SHARED'].includes(item.owner_type))) {
+        const button = textNode('button', (memory.owner_type === 'SHARED' ? 'Keep private: ' : 'Mark shareable: ') + memory.memory_id.slice(0, 8), 'secondary');
+        button.onclick = async () => {
+          const owner_type = memory.owner_type === 'SHARED' ? 'USER' : 'SHARED';
+          button.disabled = true;
+          try { await api('/v1/memory/' + memory.memory_id, {owner_type, expected_revision: memory.revision}, 'PATCH'); await refreshDebug(); }
+          catch (error) { notice(error.message); button.disabled = false; }
+        };
+        $('debug-content').append(button);
+      }
+    }
+    if (section === 'sharing') {
+      for (const share of value.outgoing.filter(item => item.active)) {
+        const button = textNode('button', 'Revoke access for ' + share.grantee_user_id.slice(0, 8), 'secondary');
+        button.onclick = async () => {
+          button.disabled = true;
+          try { await api('/v1/sharing/grants/' + share.share_id, undefined, 'DELETE'); await refreshDebug(); }
+          catch (error) { notice(error.message); button.disabled = false; }
+        };
+        $('debug-content').append(button);
+      }
+    }
+  } catch (error) {
+    if (request === debugRequest && currentSession === session) $('debug-content').replaceChildren(textNode('p', error.message));
+  }
+}
+$('debug-toggle').onclick = () => setDebugOpen(!debugOpen);
+$('debug-close').onclick = () => setDebugOpen(false);
+$('debug-refresh').onclick = refreshDebug;
+for (const button of document.querySelectorAll('[data-debug]')) button.onclick = () => {
+  debugSection = button.dataset.debug;
+  for (const tab of document.querySelectorAll('[data-debug]')) tab.setAttribute('aria-pressed', String(tab === button));
+  refreshDebug();
+};
+for (const button of document.querySelectorAll('[data-prompt]')) button.onclick = () => { $('message').value = button.dataset.prompt; $('message').focus(); };
+document.addEventListener?.('keydown', event => { if (event.key === 'Escape' && debugOpen) setDebugOpen(false); });
+formAction('debug-search-form', async data => {
+  const result = await api('/v1/memory/search', {query: data.get('query'), top_k: 12});
+  if (debugOpen) renderDebugValue({retrieved: result});
+});
+formAction('debug-share-form', async data => {
+  await api('/v1/sharing/grants', {grantee_user_id: data.get('user_id'), can_read: true});
+  debugSection = 'sharing'; await refreshDebug(); notice('Explicit sharing grant saved. Only marked memories are eligible.');
+});
+$('cancel-reply').onclick = async () => {
+  if (!latestTurn?.turn_id) return;
+  try {
+    await api('/v1/agent/turn/' + latestTurn.turn_id + '/cancel', {});
+    activeTurnId = 'cancelled-' + latestTurn.turn_id;
+    chatBusy = false; $('new-conversation').disabled = false; $('cancel-reply').hidden = true;
+    notice('Cancellation requested. Existing actions may already have completed.');
+  } catch (error) { notice(error.message); }
+};
 const messageInput = $('message');
 messageInput.addEventListener('input', () => { messageInput.style.height = 'auto'; messageInput.style.height = Math.min(messageInput.scrollHeight, 180) + 'px'; });
 messageInput.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); $('chat-form').requestSubmit(); } });
 formAction('chat-form', async data => {
+  if (chatBusy) { notice('A reply is already in progress.'); return; }
+  chatBusy = true; latestTurn = null;
+  activeTurnId = 'submitting-' + newId();
+  $('new-conversation').disabled = true;
+  $('chat-suggestions').hidden = true;
   const message = data.get('message');
+  const requestSession = session, requestToken = token;
   $('messages').querySelectorAll('.empty-chat').forEach(node => node.remove());
   $('messages').append(fragmentNode('div', 'msg msg-user', [document.createTextNode(message)]));
   const reply = fragmentNode('div', 'msg msg-assistant pending', []);
@@ -237,12 +381,15 @@ formAction('chat-form', async data => {
   $('messages').scrollTop = $('messages').scrollHeight;
   $('chat-form').reset();
   messageInput.style.height = 'auto';
-  runCorrelation(message);
   try {
     const result = await api('/v1/agent/turn', {message, idempotency_key: newId(), mode: 'raw'});
-    if (typeof result.answer === 'string') { setBubbleText(reply, result.answer, false); loadConversations().catch(() => {}); }
+    if (!token || token !== requestToken || session !== requestSession || !reply.isConnected) return;
+    latestTurn = result;
+    activeTurnId = result.turn_id || null;
+    $('cancel-reply').hidden = !result.turn_id;
+    if (typeof result.answer === 'string') { chatBusy = false; $('new-conversation').disabled = false; setBubbleText(reply, result.answer, false); loadConversations().catch(() => {}); }
     else await pollTurn(result.turn_id, reply);
-  } catch (error) { setBubbleText(reply, 'Could not submit your message: ' + error.message, true); }
+  } catch (error) { chatBusy = false; $('new-conversation').disabled = false; setBubbleText(reply, 'Could not submit your message: ' + error.message, true); }
 });
 formAction('memory-find', async data => { inspectedMemory = await api('/v1/memory/' + encodeURIComponent(data.get('id'))); $('memory-detail').textContent = JSON.stringify(inspectedMemory, null, 2); $('memory-correct').elements.text.value = inspectedMemory.text; });
 formAction('memory-correct', async data => { if (!inspectedMemory) throw new Error('Inspect a memory first.'); await api('/v1/memory/mutate', {operation: 'CORRECTION', target_id: inspectedMemory.memory_id, expected_revision: inspectedMemory.revision, candidate: {text: data.get('text'), type: inspectedMemory.type, disclosure: inspectedMemory.disclosure, allowed_agent_ids: inspectedMemory.allowed_agent_ids, allowed_project_ids: inspectedMemory.allowed_project_ids, privacy_class: inspectedMemory.privacy_class}}); inspectedMemory = null; notice('Correction recorded. Dependent tasks and skills require review.'); await loadSkills(); });

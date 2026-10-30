@@ -224,17 +224,41 @@ def create_app(settings=None, service=None, auth=None):
 
     @app.get("/v1/portal/config")
     def portal_config(ctx=Depends(read)):
+        from decimal import Decimal
+        from urllib.parse import urlparse
+
         from database.repositories.memory import SQLMemoryRepository
+        from memory.agent.capabilities import capabilities
 
         with service.engine.begin() as db:
             SQLMemoryRepository(db, ctx)
+        chat_budget = None
+        if hasattr(app.state, "chat_budget"):
+            chat_budget = app.state.chat_budget.summary()
+            chat_budget["effective_cap_usd"] = str(
+                Decimal(app.state.chat_budget.instance_cap) / 1_000_000_000
+            )
         return {
             "synthetic_demo": getattr(app.state, "synthetic_demo", False),
             "handoff_enabled": settings.handoff_enabled,
             "embedding_model": service.embedder.model_id,
             "cloud_disclosure_enabled": settings.cloud_disclosure_enabled,
-            "model": settings.extraction_model,
+            "model": settings.assistant_model or settings.extraction_model,
+            "extraction_model": settings.extraction_model,
+            "assistant_backend": "configured provider",
+            "provider_host": urlparse(
+                settings.assistant_provider_base_url or settings.provider_base_url
+            ).hostname,
+            "layers": [
+                "authorized memory retrieval",
+                "session correlation",
+                "context transfer",
+                "durable turns",
+            ],
             "correlation_backend": "heuristic",
+            "capabilities": capabilities(settings),
+            "chat_mode": getattr(app.state, "chat_mode", "configured"),
+            "chat_budget": chat_budget,
         }
 
     @app.post("/v1/portal/correlate")
@@ -428,6 +452,25 @@ def create_app(settings=None, service=None, auth=None):
     from memory.entities.service import EntityService
 
     entities = EntityService(service)
+    from memory.sharing.service import ShareInput, SharingService
+
+    sharing_service = SharingService(service)
+
+    @app.post("/v1/sharing/grants", status_code=201)
+    def sharing_grant(body: ShareInput, ctx=Depends(write)):
+        return sharing_service.grant(ctx, body)
+
+    @app.get("/v1/sharing/grants")
+    def sharing_outgoing(ctx=Depends(read)):
+        return sharing_service.outgoing(ctx)
+
+    @app.delete("/v1/sharing/grants/{share_id}")
+    def sharing_revoke(share_id: UUID, ctx=Depends(write)):
+        return sharing_service.revoke(ctx, share_id)
+
+    @app.get("/v1/sharing/incoming")
+    def sharing_incoming(ctx=Depends(read)):
+        return sharing_service.incoming(ctx)
 
     @app.get("/v1/entities/{entity_id}")
     def entity_get(entity_id: UUID, ctx=Depends(read)):

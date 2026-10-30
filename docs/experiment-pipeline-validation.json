@@ -1,0 +1,93 @@
+{
+  "date": "2026-10-29",
+  "timezone": "Asia/Calcutta",
+  "phase": "offline implementation; no live quality claim",
+  "source_identity": {
+    "git_head": "4cda94a14a231e9974478544168e51cfce825ffc",
+    "source_tree_sha256": "1f4ac0ee69c333add13c6a52180b0e28c2fca565e4a0c62ddb93ad09bb2adcf1"
+  },
+  "tests": {
+    "passed": 118,
+    "skipped": 3,
+    "failed": 0,
+    "seconds": 57.95,
+    "command": ".venv/Scripts/python.exe -m pytest tests/unit/test_experiment_pipeline.py tests/unit/test_benchmark_harness.py tests/unit/test_context_budget.py tests/unit/test_provider_routing.py tests/integration/test_hermes_execution.py tests/integration/test_scope_enforcement.py tests/integration/test_hybrid.py tests/integration/test_agent_loop.py tests/integration/test_handoff.py tests/integration/test_transfer.py tests/integration/test_autonomy.py -q",
+    "real_runtime": "The three pinned-runtime tests in benchmark/experiment suites ran with scripted providers, including AgentService plus the evidence-backed calendar tool.",
+    "skips": "Two existing Hermes integration tests and one existing autonomy integration test gated on COOKIEAI_HERMES_PYTHON; all three real-runtime tests in the benchmark/experiment unit suites ran.",
+    "warnings": [
+      "Existing Starlette/httpx TestClient deprecation; no dependency upgrade performed"
+    ]
+  },
+  "checks": {
+    "ruff": "passed",
+    "ruff_format": "passed",
+    "git_diff_check": "passed"
+  },
+  "readiness": {
+    "offline_architecture": "implemented; see verification artifact for tested scope",
+    "evaluation_paid_validation": "awaiting frozen plan and explicit approval",
+    "full_evaluation": "blocked_pending_heldout_protocol_validation",
+    "training_artifacts": "offline authored data pipeline available",
+    "training_submission": "training_blocked: unsupported_model_or_account",
+    "checkpoint_promotion": "blocked_no_trained_checkpoint",
+    "paid_calls_started": false
+  },
+  "artifacts": {
+    "architecture_and_usage": "docs/experiment-pipeline.md",
+    "recorded_failure_audit": "docs/experiment-failure-audit.json",
+    "offline_retrieval_report": "docs/experiment-offline-results.json",
+    "full_oracle_plan_cost": "docs/experiment-full-run-cost-plan.json",
+    "training_smoke_data": "examples/training-smoke",
+    "training_plan": "examples/training-smoke/training-plan.json"
+  },
+  "full_oracle_dry_plan": {
+    "questions": 500,
+    "modes": 2,
+    "upper_bound_usd": "15.15434852",
+    "proposed_cumulative_cap_usd": "5",
+    "execution_started": false,
+    "protocol_gate_passed": false
+  },
+  "training": {
+    "artifacts": {
+      "train": 20,
+      "validation": 2,
+      "test": 2
+    },
+    "independent_synthetic": true,
+    "uploaded": false,
+    "job_submitted": false,
+    "blockers": [
+      "training_blocked: unsupported_model_or_account"
+    ],
+    "api_adapter": "Documented endpoints and hyperparameters verified against public docs/cached OpenAPI; real job behavior is mock-tested only"
+  },
+  "network_this_pass": {
+    "public_documentation_read": true,
+    "account_discovery": false,
+    "paid_inference_calls": 0,
+    "training_uploads": 0,
+    "training_submissions": 0
+  },
+  "additional_spend_usd": "0",
+  "prior_ledger_unchanged": {
+    "calls": 83,
+    "spent_or_reserved_usd": "0.00752852",
+    "cap_usd": "1",
+    "call_cap": 100
+  },
+  "production_changes": {
+    "provider": false,
+    "database": false,
+    "default_tool_permissions": false,
+    "upstream_hermes_source": false
+  },
+  "limitations": [
+    "No new held-out semantic model run; retrieval/answer accuracy improvement remains unverified",
+    "Calendar evidence resolution intentionally supports ISO dates and today/yesterday only",
+    "Application mode covers raw retention and actual turn/context/broker/outcome processing; background learning workers are not run",
+    "PII redaction and phrase-overlap checks are conservative heuristics, not complete privacy/semantic-contamination proofs",
+    "Full conservative quote exceeds the proposed allocation; no approval policy migration was applied",
+    "Lightning training entitlement, training-schema support, credit eligibility and pricing remain unverified"
+  ]
+}

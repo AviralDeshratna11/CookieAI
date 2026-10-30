@@ -1,0 +1,772 @@
+{
+  "benchmark": "LongMemEval",
+  "manifest": {
+    "schema": 1,
+    "benchmark": "LongMemEval",
+    "dataset_profile": "synthetic",
+    "dataset_sha256": "242f61b551b7da7766ea3f2f024b2998936aebe81488406660d5abf32718e059",
+    "question_ids": [
+      "synthetic_missing_abs",
+      "synthetic_preference_1",
+      "synthetic_temporal_1",
+      "synthetic_update_1"
+    ],
+    "heldout_ids": [],
+    "seed": 42,
+    "split": "all",
+    "heldout_fraction": 0.2,
+    "modes": [
+      "retrieval-only"
+    ],
+    "evaluation_plan_sha256": null,
+    "config": {},
+    "top_k": 20,
+    "neighbors": 1,
+    "preprocessing_version": "timestamped-source-offsets-v2",
+    "effective_retrieval_policy": {
+      "extraction_threshold": 0.55,
+      "rolling_messages": 10,
+      "max_memories_per_turn": 12,
+      "minimum_candidates": 60,
+      "overfetch_multiplier": 4,
+      "max_memory_tokens": 24000,
+      "graph_max_hops": 3,
+      "graph_hop_decay": 0.55,
+      "graph_minimum_activation": 0.1,
+      "minimum_support": 3,
+      "serendipity_confidence": 0.65,
+      "serendipity_novelty": 0.45,
+      "serendipity_utility": 0.4,
+      "half_life_days": 180,
+      "context_allocation": {
+        "recent_messages": 0.25,
+        "retrieved_memories": 0.25,
+        "autobiographical_state": 0.1,
+        "relevant_episodes": 0.1,
+        "relevant_experiences": 0.06,
+        "relevant_procedures": 0.08,
+        "relevant_insights": 0.04,
+        "active_goals": 0.04,
+        "active_projects": 0.04,
+        "prospective_memories": 0.02,
+        "other": 0.02
+      },
+      "scoring_weights": {
+        "semantic": 0.27,
+        "keyword": 0.11,
+        "entity": 0.11,
+        "graph": 0.11,
+        "temporal": 0.07,
+        "importance": 0.08,
+        "recency": 0.04,
+        "goal": 0.08,
+        "episode": 0.05,
+        "procedure": 0.04,
+        "associative": 0.04
+      }
+    },
+    "response_adapter": "strict-native-v2",
+    "code": {
+      "git_head": "4cda94a14a231e9974478544168e51cfce825ffc",
+      "source_tree_sha256": "1f4ac0ee69c333add13c6a52180b0e28c2fca565e4a0c62ddb93ad09bb2adcf1"
+    },
+    "prompt_sha256": "dccc5238d23cadfe9c9b554e8a7251ccb257d088e144e0f25360e1f7208c73c0",
+    "scope": "MemoryService retrieval + HermesBackend; excludes AgentService durable turn/context-transfer/learning stages",
+    "concurrency": 1,
+    "retrieval_rounds": 1,
+    "timezone": "dataset unspecified; naive dates retained in evidence; UTC storage convention only",
+    "retrieval_metric": "evidence-session coverage, not gold answer-turn recall",
+    "oracle_diagnostic": false,
+    "embedding_quality": "lexical test double",
+    "judge_relationship": "self-judged",
+    "execution": "offline",
+    "hermes_pin": {
+      "repository": "https://github.com/NousResearch/hermes-agent",
+      "commit": "1f6efd6eb0ba6b573c73c96d14dff1be4454823d",
+      "release": "v2026.4.3 / 0.7.0",
+      "license": "MIT",
+      "scope": "experimental Python 3.11 pilot; not a current-release security attestation",
+      "interface_sha256": {
+        "run_agent.py": "e790ce58bd381b26264fbfb47562d62fd1c3fe33ff334d834e78639d64e80a5a",
+        "model_tools.py": "72a4e7f7ff229043e4bde84fb0951b1e8bcac03aa453ee8c5fde3672979ce4f3",
+        "toolsets.py": "74864efb0f16559043c2b64dec85393bdb283ac1b26c247490155ae107e8ccbb",
+        "tools/registry.py": "d5a45a9f69d40d1da452228b33e715f4c563cbc66587c55d7b7b7e56c5bd04df",
+        "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6"
+      },
+      "archive_sha256": "fd9b5d1adee02756b582c22369e703a8911d86231947b152c6f6b94485a027df"
+    },
+    "evaluator": {
+      "repository": "https://github.com/xiaowu0162/LongMemEval",
+      "path": "src/evaluation/evaluate_qa.py",
+      "upstream_revision": "d6dc8b50a2d9ac0c99485ea28fa5755c62414c34",
+      "source_url": "https://github.com/xiaowu0162/LongMemEval/blob/d6dc8b50a2d9ac0c99485ea28fa5755c62414c34/src/evaluation/evaluate_qa.py",
+      "status": "local prompt snapshot checked against upstream evaluator on 2026-10-29",
+      "local_function": "scripts.benchmark_longmemeval.get_anscheck_prompt",
+      "protocol_deviations": [
+        "Strict complete yes/no verdicts rather than substring matching",
+        "Abstention uses documented _abs suffix rather than upstream substring matching",
+        "Configurable NVIDIA judge rather than official model_zoo grader; results are not official-grader scores"
+      ],
+      "publication_gate": "Configured NVIDIA judge scores are not official-grader scores"
+    },
+    "fingerprint": "03be700d7ea74212014f550fab2621a882b02d43613eb1ae9266c4a6c3c79eb0"
+  },
+  "planned": 4,
+  "attempted": 4,
+  "completed_answers": 0,
+  "valid_grades": 0,
+  "correct": 0,
+  "valid_grade_accuracy_wilson_95": null,
+  "attempted_success_wilson_95": null,
+  "wrong": 0,
+  "status_counts": {
+    "retrieved": 4
+  },
+  "accuracy_among_valid_grades": null,
+  "all_attempted_success_rate": null,
+  "grade_coverage": null,
+  "completion_rate": null,
+  "by_type": {
+    "single-session-user": {
+      "count": 1,
+      "valid_grades": 0,
+      "accuracy": null,
+      "mean_session_recall": null
+    },
+    "single-session-preference": {
+      "count": 1,
+      "valid_grades": 0,
+      "accuracy": null,
+      "mean_session_recall": 1.0
+    },
+    "temporal-reasoning": {
+      "count": 1,
+      "valid_grades": 0,
+      "accuracy": null,
+      "mean_session_recall": 1.0
+    },
+    "knowledge-update": {
+      "count": 1,
+      "valid_grades": 0,
+      "accuracy": null,
+      "mean_session_recall": 1.0
+    },
+    "abstention": {
+      "count": 1,
+      "valid_grades": 0,
+      "accuracy": null,
+      "mean_session_recall": null
+    }
+  },
+  "questions_detail": [
+    {
+      "question_id": "synthetic_missing_abs",
+      "mode": "retrieval-only",
+      "question_type": "single-session-user",
+      "abstention": true,
+      "status": "retrieved",
+      "events": [],
+      "attempted": true,
+      "session_recall": null,
+      "packed_session_recall": null,
+      "recall_note": "No gold sessions: recall undefined",
+      "packing": {
+        "selected_source_ids": [
+          "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 333,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 1,
+      "source_stages": {
+        "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca": "packed"
+      },
+      "retrieval_traces": [
+        {
+          "namespace_id": "370abea8-d204-5992-b484-6680df616857",
+          "query": "What is my bicycle serial number?",
+          "effective_policy": {
+            "extraction_threshold": 0.55,
+            "rolling_messages": 10,
+            "max_memories_per_turn": 12,
+            "minimum_candidates": 60,
+            "overfetch_multiplier": 4,
+            "max_memory_tokens": 24000,
+            "graph_max_hops": 3,
+            "graph_hop_decay": 0.55,
+            "graph_minimum_activation": 0.1,
+            "minimum_support": 3,
+            "serendipity_confidence": 0.65,
+            "serendipity_novelty": 0.45,
+            "serendipity_utility": 0.4,
+            "half_life_days": 180,
+            "context_allocation": {
+              "recent_messages": 0.25,
+              "retrieved_memories": 0.25,
+              "autobiographical_state": 0.1,
+              "relevant_episodes": 0.1,
+              "relevant_experiences": 0.06,
+              "relevant_procedures": 0.08,
+              "relevant_insights": 0.04,
+              "active_goals": 0.04,
+              "active_projects": 0.04,
+              "prospective_memories": 0.02,
+              "other": 0.02
+            },
+            "scoring_weights": {
+              "semantic": 0.27,
+              "keyword": 0.11,
+              "entity": 0.11,
+              "graph": 0.11,
+              "temporal": 0.07,
+              "importance": 0.08,
+              "recency": 0.04,
+              "goal": 0.08,
+              "episode": 0.05,
+              "procedure": 0.04,
+              "associative": 0.04
+            }
+          },
+          "counter": "conservative_utf8_upper_bound",
+          "corpus_ids": [
+            "6f6c8761-7874-46e5-b2e4-6cd4b4a330c6"
+          ],
+          "candidate_ids": [
+            "6f6c8761-7874-46e5-b2e4-6cd4b4a330c6"
+          ],
+          "ranked": [
+            {
+              "memory_id": "6f6c8761-7874-46e5-b2e4-6cd4b4a330c6",
+              "score": 0.3888073675141412,
+              "tokens": 104
+            }
+          ],
+          "selected_ids": [
+            "6f6c8761-7874-46e5-b2e4-6cd4b4a330c6"
+          ],
+          "selection": {
+            "6f6c8761-7874-46e5-b2e4-6cd4b4a330c6": {
+              "status": "selected",
+              "cost": 1776
+            }
+          }
+        }
+      ],
+      "index_trace": {
+        "fingerprint": "140b1e1378dffc1376844177de60a7891179d424fcfaf636cbeaff0d8892bcd0",
+        "sources_reused": 1,
+        "sources_created": 0,
+        "namespace_id": "370abea8-d204-5992-b484-6680df616857"
+      },
+      "retrieved_session_ids": [
+        "bike"
+      ],
+      "packed_session_ids": [
+        "bike"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "f54cd35bd6775e7435717ea161b66492a24bd4e1c3e3924f00eb8792b7752cca",
+          "session_id": "bike",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "My bicycle is blue.",
+          "char_start": 0,
+          "char_end": 19,
+          "parent_turn_sha256": "ab7d6b345dee487b7c964ac7786284842f63a1ca379fc87048f4110167ba1955"
+        }
+      ],
+      "evidence_fingerprint": "09f86020f30eb69ce02f72f6efcd93633f8d7d42c12fc3d255bcc064a1c68ba5",
+      "latency_ms": 62.000000001717126
+    },
+    {
+      "question_id": "synthetic_preference_1",
+      "mode": "retrieval-only",
+      "question_type": "single-session-preference",
+      "abstention": false,
+      "status": "retrieved",
+      "events": [],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 354,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 1,
+      "source_stages": {
+        "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d": "packed"
+      },
+      "retrieval_traces": [
+        {
+          "namespace_id": "dac37bbe-fdd3-5ebd-9522-64326d613d4f",
+          "query": "Suggest a lunch for me.",
+          "effective_policy": {
+            "extraction_threshold": 0.55,
+            "rolling_messages": 10,
+            "max_memories_per_turn": 12,
+            "minimum_candidates": 60,
+            "overfetch_multiplier": 4,
+            "max_memory_tokens": 24000,
+            "graph_max_hops": 3,
+            "graph_hop_decay": 0.55,
+            "graph_minimum_activation": 0.1,
+            "minimum_support": 3,
+            "serendipity_confidence": 0.65,
+            "serendipity_novelty": 0.45,
+            "serendipity_utility": 0.4,
+            "half_life_days": 180,
+            "context_allocation": {
+              "recent_messages": 0.25,
+              "retrieved_memories": 0.25,
+              "autobiographical_state": 0.1,
+              "relevant_episodes": 0.1,
+              "relevant_experiences": 0.06,
+              "relevant_procedures": 0.08,
+              "relevant_insights": 0.04,
+              "active_goals": 0.04,
+              "active_projects": 0.04,
+              "prospective_memories": 0.02,
+              "other": 0.02
+            },
+            "scoring_weights": {
+              "semantic": 0.27,
+              "keyword": 0.11,
+              "entity": 0.11,
+              "graph": 0.11,
+              "temporal": 0.07,
+              "importance": 0.08,
+              "recency": 0.04,
+              "goal": 0.08,
+              "episode": 0.05,
+              "procedure": 0.04,
+              "associative": 0.04
+            }
+          },
+          "counter": "conservative_utf8_upper_bound",
+          "corpus_ids": [
+            "02861ebc-970f-4384-8e74-af8d67f55dc4"
+          ],
+          "candidate_ids": [
+            "02861ebc-970f-4384-8e74-af8d67f55dc4"
+          ],
+          "ranked": [
+            {
+              "memory_id": "02861ebc-970f-4384-8e74-af8d67f55dc4",
+              "score": 0.11444079224365847,
+              "tokens": 125
+            }
+          ],
+          "selected_ids": [
+            "02861ebc-970f-4384-8e74-af8d67f55dc4"
+          ],
+          "selection": {
+            "02861ebc-970f-4384-8e74-af8d67f55dc4": {
+              "status": "selected",
+              "cost": 1818
+            }
+          }
+        }
+      ],
+      "index_trace": {
+        "fingerprint": "71ddaa3ace9d89f08205375381dfeda0168a1932d40d18fa064a8dfdea13105d",
+        "sources_reused": 1,
+        "sources_created": 0,
+        "namespace_id": "dac37bbe-fdd3-5ebd-9522-64326d613d4f"
+      },
+      "retrieved_session_ids": [
+        "diet"
+      ],
+      "packed_session_ids": [
+        "diet"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "d8d1564d31b3ae5ac0a7426f1a69572ca80bb27244e46437970108671fa85c0d",
+          "session_id": "diet",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I eat vegetarian food and avoid peanuts.",
+          "char_start": 0,
+          "char_end": 40,
+          "parent_turn_sha256": "0e4b4c58c834164c39a91321cfa57931906d047003019ce76cd8bc82b30cc571"
+        }
+      ],
+      "evidence_fingerprint": "29c020242cb3db5a037d83d93575369b8d21f090486a5dad10f8147f1b93bb80",
+      "latency_ms": 30.999999999039574
+    },
+    {
+      "question_id": "synthetic_temporal_1",
+      "mode": "retrieval-only",
+      "question_type": "temporal-reasoning",
+      "abstention": false,
+      "status": "retrieved",
+      "events": [],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547",
+          "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56",
+          "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 1053,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 3,
+      "source_stages": {
+        "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547": "packed",
+        "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56": "packed",
+        "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb": "packed"
+      },
+      "retrieval_traces": [
+        {
+          "namespace_id": "b5079e42-ea1a-5838-9af7-57549611d385",
+          "query": "How many days after I ordered the bicycle did it arrive?",
+          "effective_policy": {
+            "extraction_threshold": 0.55,
+            "rolling_messages": 10,
+            "max_memories_per_turn": 12,
+            "minimum_candidates": 60,
+            "overfetch_multiplier": 4,
+            "max_memory_tokens": 24000,
+            "graph_max_hops": 3,
+            "graph_hop_decay": 0.55,
+            "graph_minimum_activation": 0.1,
+            "minimum_support": 3,
+            "serendipity_confidence": 0.65,
+            "serendipity_novelty": 0.45,
+            "serendipity_utility": 0.4,
+            "half_life_days": 180,
+            "context_allocation": {
+              "recent_messages": 0.25,
+              "retrieved_memories": 0.25,
+              "autobiographical_state": 0.1,
+              "relevant_episodes": 0.1,
+              "relevant_experiences": 0.06,
+              "relevant_procedures": 0.08,
+              "relevant_insights": 0.04,
+              "active_goals": 0.04,
+              "active_projects": 0.04,
+              "prospective_memories": 0.02,
+              "other": 0.02
+            },
+            "scoring_weights": {
+              "semantic": 0.27,
+              "keyword": 0.11,
+              "entity": 0.11,
+              "graph": 0.11,
+              "temporal": 0.07,
+              "importance": 0.08,
+              "recency": 0.04,
+              "goal": 0.08,
+              "episode": 0.05,
+              "procedure": 0.04,
+              "associative": 0.04
+            }
+          },
+          "counter": "conservative_utf8_upper_bound",
+          "corpus_ids": [
+            "761d63f5-73cb-4389-b83a-fdbbc3128e00",
+            "efdfb9e1-480f-4273-8ad1-63e5c5368629",
+            "96730ce5-65da-4a43-96a0-8697cc5ce933"
+          ],
+          "candidate_ids": [
+            "761d63f5-73cb-4389-b83a-fdbbc3128e00",
+            "96730ce5-65da-4a43-96a0-8697cc5ce933",
+            "efdfb9e1-480f-4273-8ad1-63e5c5368629"
+          ],
+          "ranked": [
+            {
+              "memory_id": "96730ce5-65da-4a43-96a0-8697cc5ce933",
+              "score": 0.34490005940781665,
+              "tokens": 111
+            },
+            {
+              "memory_id": "efdfb9e1-480f-4273-8ad1-63e5c5368629",
+              "score": 0.21594425291446934,
+              "tokens": 127
+            },
+            {
+              "memory_id": "761d63f5-73cb-4389-b83a-fdbbc3128e00",
+              "score": 0.16638283739178594,
+              "tokens": 110
+            }
+          ],
+          "selected_ids": [
+            "96730ce5-65da-4a43-96a0-8697cc5ce933",
+            "efdfb9e1-480f-4273-8ad1-63e5c5368629",
+            "761d63f5-73cb-4389-b83a-fdbbc3128e00"
+          ],
+          "selection": {
+            "96730ce5-65da-4a43-96a0-8697cc5ce933": {
+              "status": "selected",
+              "cost": 1796
+            },
+            "efdfb9e1-480f-4273-8ad1-63e5c5368629": {
+              "status": "selected",
+              "cost": 1828
+            },
+            "761d63f5-73cb-4389-b83a-fdbbc3128e00": {
+              "status": "selected",
+              "cost": 1796
+            }
+          }
+        }
+      ],
+      "index_trace": {
+        "fingerprint": "a642c00e24bbadaecf5f2d55e4ae5c633559ba9471af23c4dea6f0cb271175f1",
+        "sources_reused": 3,
+        "sources_created": 0,
+        "namespace_id": "b5079e42-ea1a-5838-9af7-57549611d385"
+      },
+      "retrieved_session_ids": [
+        "bike_arrival",
+        "bike_order"
+      ],
+      "packed_session_ids": [
+        "bike_arrival",
+        "bike_order"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "b3fce30378c65edabd5e9556c9ed95d474d934864a6f29379d24d232e9002547",
+          "session_id": "bike_order",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I ordered a bicycle today.",
+          "char_start": 0,
+          "char_end": 26,
+          "parent_turn_sha256": "024f748c90aaf77e305b84dbff049262cc6b766700c7ae869656045f9d34a42b"
+        },
+        {
+          "source_id": "af82e1971362ae052e8e7d77464998cd485d836fc5a1d7545d80cb8a24de4d56",
+          "session_id": "bike_order",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 1,
+          "chunk_index": 0,
+          "role": "assistant",
+          "text": "Let me know when the bicycle arrives.",
+          "char_start": 0,
+          "char_end": 37,
+          "parent_turn_sha256": "afeac0e1ae7b5d8958acab6b5fd1999a43aadf0eab80fa5f7b2b9227128f83d7"
+        },
+        {
+          "source_id": "970035ec267f652c396183c732c1ec7dc42534ea858944ebc1c0c71bcdf07bfb",
+          "session_id": "bike_arrival",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "My bicycle arrived today.",
+          "char_start": 0,
+          "char_end": 25,
+          "parent_turn_sha256": "a7f85278644d521ad291a69d6883e638edfbe0c6ad3080084add00b3bbf7ba1c"
+        }
+      ],
+      "evidence_fingerprint": "675e33ce9c5c15cb9fd249cedbb22af986ba0ffea511bcaaab323623ae957e5e",
+      "latency_ms": 31.9999999992433
+    },
+    {
+      "question_id": "synthetic_update_1",
+      "mode": "retrieval-only",
+      "question_type": "knowledge-update",
+      "abstention": false,
+      "status": "retrieved",
+      "events": [],
+      "attempted": true,
+      "session_recall": 1.0,
+      "packed_session_recall": 1.0,
+      "recall_note": "Any turn counts toward session coverage",
+      "packing": {
+        "selected_source_ids": [
+          "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f",
+          "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81"
+        ],
+        "omitted_source_ids": [],
+        "truncated": false,
+        "evidence_tokens": 694,
+        "counter": "conservative_utf8_upper_bound"
+      },
+      "source_chunks_ingested": 2,
+      "source_stages": {
+        "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f": "packed",
+        "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81": "packed"
+      },
+      "retrieval_traces": [
+        {
+          "namespace_id": "1fb7f684-ed1b-5761-b0d3-5e9380a24364",
+          "query": "Where do I currently live?",
+          "effective_policy": {
+            "extraction_threshold": 0.55,
+            "rolling_messages": 10,
+            "max_memories_per_turn": 12,
+            "minimum_candidates": 60,
+            "overfetch_multiplier": 4,
+            "max_memory_tokens": 24000,
+            "graph_max_hops": 3,
+            "graph_hop_decay": 0.55,
+            "graph_minimum_activation": 0.1,
+            "minimum_support": 3,
+            "serendipity_confidence": 0.65,
+            "serendipity_novelty": 0.45,
+            "serendipity_utility": 0.4,
+            "half_life_days": 180,
+            "context_allocation": {
+              "recent_messages": 0.25,
+              "retrieved_memories": 0.25,
+              "autobiographical_state": 0.1,
+              "relevant_episodes": 0.1,
+              "relevant_experiences": 0.06,
+              "relevant_procedures": 0.08,
+              "relevant_insights": 0.04,
+              "active_goals": 0.04,
+              "active_projects": 0.04,
+              "prospective_memories": 0.02,
+              "other": 0.02
+            },
+            "scoring_weights": {
+              "semantic": 0.27,
+              "keyword": 0.11,
+              "entity": 0.11,
+              "graph": 0.11,
+              "temporal": 0.07,
+              "importance": 0.08,
+              "recency": 0.04,
+              "goal": 0.08,
+              "episode": 0.05,
+              "procedure": 0.04,
+              "associative": 0.04
+            }
+          },
+          "counter": "conservative_utf8_upper_bound",
+          "corpus_ids": [
+            "f2395716-b971-4807-b1e1-aadf67a12091",
+            "ddef9021-4081-4941-b7e3-c1dc05aad814"
+          ],
+          "candidate_ids": [
+            "ddef9021-4081-4941-b7e3-c1dc05aad814",
+            "f2395716-b971-4807-b1e1-aadf67a12091"
+          ],
+          "ranked": [
+            {
+              "memory_id": "ddef9021-4081-4941-b7e3-c1dc05aad814",
+              "score": 0.38880756904055125,
+              "tokens": 101
+            },
+            {
+              "memory_id": "f2395716-b971-4807-b1e1-aadf67a12091",
+              "score": 0.16112358377163333,
+              "tokens": 128
+            }
+          ],
+          "selected_ids": [
+            "ddef9021-4081-4941-b7e3-c1dc05aad814",
+            "f2395716-b971-4807-b1e1-aadf67a12091"
+          ],
+          "selection": {
+            "ddef9021-4081-4941-b7e3-c1dc05aad814": {
+              "status": "selected",
+              "cost": 1774
+            },
+            "f2395716-b971-4807-b1e1-aadf67a12091": {
+              "status": "selected",
+              "cost": 1828
+            }
+          }
+        }
+      ],
+      "index_trace": {
+        "fingerprint": "9c07046970462131f1d47dc09c3ee75b8a1471f76a430ea49c2f3dfbda4925a5",
+        "sources_reused": 2,
+        "sources_created": 0,
+        "namespace_id": "1fb7f684-ed1b-5761-b0d3-5e9380a24364"
+      },
+      "retrieved_session_ids": [
+        "new_home",
+        "old_home"
+      ],
+      "packed_session_ids": [
+        "new_home",
+        "old_home"
+      ],
+      "diagnostics": {
+        "missing_evidence_sessions": [],
+        "sessions_lost_during_packing": [],
+        "interpretation": "Session-level diagnostics only; coverage does not prove answer-bearing turns were present"
+      },
+      "evidence": [
+        {
+          "source_id": "e973f9e400c3eeb200fb049fef37a348b5ce3e335dfbeaa68e36b3dfd2bb4f3f",
+          "session_id": "old_home",
+          "session_date": "2025/01/20 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I live in Delhi.",
+          "char_start": 0,
+          "char_end": 16,
+          "parent_turn_sha256": "8719c44605b08f23757b84dc5212ae6c3797d1737aaf236befaa9f2f815cbb75"
+        },
+        {
+          "source_id": "4b166753a2d0ac18327bcbb69a526549c7a30f66a495cc504d42249aec2d1d81",
+          "session_id": "new_home",
+          "session_date": "2025/02/03 (Mon) 10:00",
+          "turn_index": 0,
+          "chunk_index": 0,
+          "role": "user",
+          "text": "I moved to Pune today. Pune is now my home.",
+          "char_start": 0,
+          "char_end": 43,
+          "parent_turn_sha256": "e474b4e4eb2566ab421b0e170ab66743d4e2cf372916f5fd4ac19ac97b28960c"
+        }
+      ],
+      "evidence_fingerprint": "91627b23a8165007dde7cc2fe963cbc0200bddb769ff61a8cb0202f36f45a6b1",
+      "latency_ms": 30.999999999039574
+    }
+  ],
+  "cost": {
+    "spent_or_reserved_usd": "0",
+    "offline": true
+  },
+  "paired": {
+    "valid_pairs": 0,
+    "hermes_only_correct": 0,
+    "direct_only_correct": 0,
+    "pairs": [],
+    "interpretation": "Small pilot counts; no established accuracy improvement"
+  }
+}

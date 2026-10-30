@@ -1,0 +1,84 @@
+{
+  "status": "recorded_failures_reproduced_as_diagnostics",
+  "findings": [
+    {
+      "question_id": "9d25d4e0",
+      "mode": "direct",
+      "original_status": "graded",
+      "original_correct": false,
+      "session_recall": 0.6666666666666666,
+      "missing_sessions": [
+        "answer_fcff2dc4_1"
+      ],
+      "packing_omissions": 0,
+      "upstream_loss_stage": "not distinguishable from old trace; new per-candidate trace is required"
+    },
+    {
+      "question_id": "9d25d4e0",
+      "mode": "hermes",
+      "original_status": "graded",
+      "original_correct": false,
+      "session_recall": 0.6666666666666666,
+      "missing_sessions": [
+        "answer_fcff2dc4_1"
+      ],
+      "packing_omissions": 0,
+      "upstream_loss_stage": "not distinguishable from old trace; new per-candidate trace is required"
+    },
+    {
+      "question_id": "35a27287",
+      "mode": "direct",
+      "original_status": "graded",
+      "original_correct": true,
+      "session_recall": 1.0,
+      "missing_sessions": [],
+      "packing_omissions": 0,
+      "upstream_loss_stage": "not distinguishable from old trace; new per-candidate trace is required"
+    },
+    {
+      "question_id": "35a27287",
+      "mode": "hermes",
+      "original_status": "failed",
+      "original_correct": null,
+      "session_recall": 1.0,
+      "missing_sessions": [],
+      "packing_omissions": 0,
+      "upstream_loss_stage": "not distinguishable from old trace; new per-candidate trace is required",
+      "cached_response_classification": {
+        "state": "mixed_reasoning_final",
+        "final": null,
+        "finish_reason": "stop",
+        "adapter_version": "strict-native-v2"
+      }
+    },
+    {
+      "question_id": "gpt4_1e4a8aeb",
+      "mode": "direct",
+      "original_status": "graded",
+      "original_correct": false,
+      "session_recall": 1.0,
+      "missing_sessions": [],
+      "packing_omissions": 0,
+      "upstream_loss_stage": "not distinguishable from old trace; new per-candidate trace is required"
+    },
+    {
+      "question_id": "gpt4_1e4a8aeb",
+      "mode": "hermes",
+      "original_status": "graded",
+      "original_correct": false,
+      "session_recall": 1.0,
+      "missing_sessions": [],
+      "packing_omissions": 0,
+      "upstream_loss_stage": "not distinguishable from old trace; new per-candidate trace is required"
+    }
+  ],
+  "calendar_regression": {
+    "start_date": "2023-04-15",
+    "end_date": "2023-04-21",
+    "days": 6,
+    "unit": "calendar_days",
+    "counting": "elapsed"
+  },
+  "note": "Postmortem uses historical labels; no answer generation or semantic retrieval accuracy claim",
+  "network_calls": 0
+}

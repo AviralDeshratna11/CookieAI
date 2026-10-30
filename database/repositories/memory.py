@@ -29,6 +29,10 @@ class SQLMemoryRepository:
                 text("SELECT set_config('memory.namespace_id',:namespace,true)"),
                 {"namespace": str(context.namespace_id)},
             )
+            self.db.execute(
+                text("SELECT set_config('memory.user_id',:user,true)"),
+                {"user": str(context.user_id)},
+            )
         grant = (
             self.db.execute(
                 select(t.grants)
@@ -153,6 +157,76 @@ class SQLMemoryRepository:
                 result.append(memory)
                 if limit is not None and len(result) >= limit:
                     break
+        return result
+
+    def shareable(self, memory):
+        """A SHARED memory must be broadly-scoped: no agent-restriction, no elevated privacy."""
+        return (
+            memory.owner_type == "SHARED"
+            and memory.privacy_class in {"PUBLIC", "NORMAL"}
+            and not memory.allowed_agent_ids
+        )
+
+    def shared_memories(self, limit=200):
+        """Memories explicitly marked SHARED in namespaces granted to this user.
+
+        Never returns a grantor's ordinary private memories: visibility is bounded
+        to rows that independently pass `shareable`. Each namespace is queried
+        under its own RLS scope, then the session namespace is restored.
+        """
+        from database import sharing_tables as s
+
+        active_grants = (
+            self.db.execute(
+                select(s.shares.c.namespace_id)
+                .where(
+                    s.shares.c.grantee_user_id == self.ctx.user_id,
+                    s.shares.c.can_read.is_(True),
+                    s.shares.c.revoked_at.is_(None),
+                )
+                .distinct()
+            )
+            .scalars()
+            .all()
+        )
+        result = []
+        for namespace_id in active_grants:
+            if namespace_id == self.ctx.namespace_id:
+                continue  # Already visible as this user's own namespace.
+            if self.db.dialect.name == "postgresql":
+                self.db.execute(
+                    text("SELECT set_config('memory.namespace_id',:namespace,true)"),
+                    {"namespace": str(namespace_id)},
+                )
+            try:
+                rows = self.db.execute(
+                    select(t.memories.c.payload)
+                    .where(
+                        t.memories.c.namespace_id == namespace_id,
+                        t.memories.c.status.in_(
+                            [Status.ACTIVE.value, Status.DISPUTED.value]
+                        ),
+                        (
+                            t.memories.c.expires_at.is_(None)
+                            | (t.memories.c.expires_at > utcnow())
+                        ),
+                    )
+                    .order_by(t.memories.c.created_at.desc())
+                )
+                for row in rows:
+                    memory = Memory.model_validate(row.payload)
+                    if self.shareable(memory) and self.valid_at(memory):
+                        result.append((memory, namespace_id))
+                        if len(result) >= limit:
+                            break
+            finally:
+                if self.db.dialect.name == "postgresql":
+                    self.db.execute(
+                        text("SELECT set_config('memory.namespace_id',:namespace,true)"),
+                        {"namespace": str(self.ctx.namespace_id)},
+                    )
+            if len(result) >= limit:
+                break
         return result
 
     def duplicate(self, content_hash, acl_hash):

@@ -1,0 +1,37 @@
+{
+  "plan": {
+    "schema_version": 1,
+    "adapter_version": "nebius-sft-v1",
+    "model": "nvidia/Nemotron-3_5-Lightning",
+    "method": "lora",
+    "capability": {
+      "schema_version": 1,
+      "model": "nvidia/Nemotron-3_5-Lightning",
+      "supported": false,
+      "account_verified": false,
+      "schema_verified": false,
+      "credit_eligibility_verified": false,
+      "methods": [],
+      "source_url": "https://docs.tokenfactory.nebius.com/post-training/models",
+      "checked_on": "2026-10-29",
+      "pricing_verified": false,
+      "max_context_tokens": null
+    },
+    "dataset_manifest_sha256": "46b41c7e0b02239a174c174065ef51cf961b404f9fa559e6dd1712d1e92e61e7",
+    "train_file_sha256": "641832baf4d1299ebee199ccfcec49b191ab2761b22051eaae6292016ba48aa1",
+    "validation_file_sha256": "aa1c6b8e41a8e07387a2ad2ecff2d694df7ba760d75e96fbb79eb3b1d1c3e296",
+    "epochs": 1,
+    "batch_size": 1,
+    "learning_rate": 1e-05,
+    "seed": 941,
+    "context_tokens": 8192,
+    "lora_rank": 8,
+    "maximum_liability_usd": null,
+    "cost_components": {}
+  },
+  "plan_sha256": "74d699c31c68a1642f1c066b1d435ca036142e398419e9de502c4662c4331c7d",
+  "blockers": [
+    "training_blocked: unsupported_model_or_account"
+  ],
+  "network_calls": 0
+}

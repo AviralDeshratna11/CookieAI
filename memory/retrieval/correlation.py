@@ -16,7 +16,7 @@ can be replaced with a model-assisted summary without changing callers.
 
 from collections import defaultdict
 
-from memory.retrieval.hybrid import terms
+from memory.retrieval.hybrid import bm25, terms
 from memory.schemas import Field, SearchRequest, StrictModel
 from memory.security.auth import require_scope
 
@@ -82,6 +82,39 @@ def build_correlation(hits, query, current_session_id=None, max_sessions=8):
     }
 
 
+def build_shared_section(shared_pairs, query, max_items=6):
+    """Rank memories another user has explicitly shared with this user.
+
+    Scored against the query with the same bm25 heuristic as `_explain`,
+    not folded into `sessions`: a shared memory belongs to someone else's
+    namespace, not one of this user's own conversations.
+    """
+    if not shared_pairs:
+        return []
+    query_terms = set(terms(query))
+    documents = [terms(memory.canonical_text) for memory, _ in shared_pairs]
+    scores = bm25(query, documents)
+    ranked = sorted(zip(shared_pairs, scores), key=lambda item: item[1], reverse=True)
+    result = []
+    for (memory, namespace_id), score in ranked[:max_items]:
+        if score <= 0:
+            continue
+        result.append(
+            {
+                "namespace_id": str(namespace_id),
+                "memory_id": str(memory.memory_id),
+                "text": memory.text,
+                "relevance": score,
+                "shared_terms": sorted(set(terms(memory.canonical_text)) & query_terms)[
+                    :6
+                ],
+                "entities": memory.entities[:6],
+                "created_at": memory.created_at.isoformat(),
+            }
+        )
+    return result
+
+
 class CorrelationService:
     def __init__(self, memory):
         self.memory = memory
@@ -90,7 +123,18 @@ class CorrelationService:
     def correlate(self, ctx, query):
         request = SearchRequest(query=query, top_k=40, score_threshold=0.15)
         hits = self.memory.search(ctx, request)
-        return build_correlation(hits, query, current_session_id=ctx.session_id)
+        from database.repositories.memory import SQLMemoryRepository
+
+        with self.memory.engine.begin() as db:
+            shared_pairs = SQLMemoryRepository(db, ctx).shared_memories()
+        result = build_correlation(hits, query, current_session_id=ctx.session_id)
+        result["shared"] = build_shared_section(shared_pairs, query)
+        if result["shared"]:
+            result["note"] += (
+                " Some results were shared with you by another user and are"
+                " marked separately."
+            )
+        return result
 
     @require_scope("read")
     def conversations(self, ctx, limit=30):

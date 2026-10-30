@@ -1,5 +1,7 @@
 ﻿# Persistent Agent Memory System
 
+The workspace opens directly into chat. A top-right **Debug** inspector exposes sessions, memory, sharing, retrieval and context transfer. See the [chat workspace guide](docs/chat-workspace.md) for the independent Nemotron route, private API/worker configuration and verification limits.
+
 **New teammate?** Follow the [complete setup from scratch](docs/teammate-setup-from-scratch.md)
 for installations, Docker, required files, credentials, migrations, startup,
 verification, troubleshooting and optional Hermes/autonomy.
@@ -80,7 +82,7 @@ The worker publishes the outbox, consumes Redis events and executes leased jobs.
 ## Verify
 
 ```powershell
-$env:MEMORY_TEST_DATABASE_URL='postgresql+psycopg://memory:memory-local-only@127.0.0.1:55432/memory?connect_timeout=5'
+$env:MEMORY_TEST_DATABASE_URL='postgresql+psycopg://memory:YOUR_LOCAL_POSTGRES_PASSWORD@127.0.0.1:55432/memory?connect_timeout=5'
 $env:MEMORY_TEST_REDIS_URL='redis://127.0.0.1:6379/15'
 .\.venv\Scripts\python -m pytest -q
 .\.venv\Scripts\python -m examples.benchmark

@@ -1,0 +1,65 @@
+{
+  "questions": 500,
+  "mode_count": 2,
+  "plan_sha256": "a59242d29f52abfa80283d62c96edd971ffdaa38807876b4ec3db4940b7e9cde",
+  "cost": {
+    "uncached_upper_bound_usd": "15.15434852",
+    "stage_costs": {
+      "embedding": "0.43946852",
+      "answer": "4.42368",
+      "judge": "10.2912"
+    },
+    "stages": {
+      "embedding": {
+        "input_tokens": 43946852,
+        "output_tokens": 0,
+        "calls": 10703
+      },
+      "answer": {
+        "input_tokens": 65536000,
+        "output_tokens": 2048000,
+        "calls": 2000
+      },
+      "judge": {
+        "input_tokens": 32768000,
+        "output_tokens": 512000,
+        "calls": 1000
+      }
+    },
+    "distinct_document_entity_vectors": 18812,
+    "price_blockers": [],
+    "expected_usd": null,
+    "historical_scenarios": {
+      "answer": {
+        "projected_usd": "0.40026000",
+        "observations": 6,
+        "method": "Historical pilot mean tokens times current maximum call count; does not validate new tools or model quality"
+      },
+      "judge": {
+        "projected_usd": "0.16074000",
+        "observations": 5,
+        "method": "Historical pilot mean tokens times current maximum call count; does not validate new tools or model quality"
+      }
+    },
+    "assumptions": [
+      "Measured source and entity strings; four query rewrites at most",
+      "Answer/judge bounds use full declared request ceilings, not expected actual prompt sizes",
+      "No fresh inference, no remote discovery, no assumption that cached responses are fresh trials",
+      "Includes two new memory searches per Hermes/application execution; application turn/entity allowance is conservative",
+      "Optional initial tool probes and repairs are excluded and must be separately planned; no repair is enabled"
+    ]
+  },
+  "previous_ledger": {
+    "calls": 83,
+    "spent_or_reserved_usd": "0.00752852",
+    "cap_usd": "1",
+    "call_cap": 100
+  },
+  "execution_started": false,
+  "blockers": [
+    "Held-out live protocol validation is missing",
+    "Conservative upper estimate exceeds the proposed $5 cap",
+    "No additional paid-run approval supplied"
+  ],
+  "oracle_diagnostic": true
+}

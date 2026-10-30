@@ -35,14 +35,25 @@ class HermesBackend:
         retain_tool_parameters=False,
         model_call_limit=None,
         on_model_request=lambda sequence: None,
+        tool_extension=None,
+        tool_call_limit=30,
     ):
         self.settings = settings
         self.guard = guard
         self.workspace = workspace
         self.provider = provider or Provider(settings)
         self.on_observation = on_observation
+        self.tool_extension = tool_extension
+        self.tool_call_limit = tool_call_limit
+        if not 1 <= tool_call_limit <= 30:
+            raise ValueError("Tool limit must be between 1 and 30")
+        extension_names = set(tool_extension.names) if tool_extension else set()
+        if extension_names & TOOL_NAMES:
+            raise ValueError("Extensions cannot replace built-in tools")
         self.allowed_tools = set(TOOL_NAMES if allowed_tools is None else allowed_tools)
-        if not self.allowed_tools or not self.allowed_tools.issubset(TOOL_NAMES):
+        if not self.allowed_tools or not self.allowed_tools.issubset(
+            TOOL_NAMES | extension_names
+        ):
             raise ValueError(
                 "Hermes tool policy is outside the supported broker toolset"
             )
@@ -91,6 +102,9 @@ class HermesBackend:
         workspace = Path(self.workspace or self.settings.hermes_workspace).absolute()
         request = {
             "allowed_tools": sorted(self.allowed_tools),
+            "extension_schemas": self.tool_extension.schemas
+            if self.tool_extension
+            else [],
             "source": str(source),
             "project": str(PROJECT),
             "run_id": str(run_id),
@@ -255,7 +269,7 @@ class HermesBackend:
                             usage[key] += result.get("usage", {}).get(key, 0)
                         send(result)
                     elif event.get("event") == "tool":
-                        if len(observations) >= 30:
+                        if len(observations) >= self.tool_call_limit:
                             raise ValueError("Hermes tool-attempt budget exceeded")
                         tool = event["name"]
                         if tool not in self.allowed_tools:
@@ -280,12 +294,33 @@ class HermesBackend:
 
                             # Reject arbitrary extra fields before persisting any
                             # model-supplied parameters in the execution journal.
-                            approved = ToolStep(tool=tool, arguments=event["arguments"])
-                            observation["arguments"] = approved.arguments
+                            if (
+                                self.tool_extension
+                                and tool in self.tool_extension.names
+                            ):
+                                approved = self.tool_extension.validate_arguments(
+                                    tool, event["arguments"]
+                                )
+                                observation["arguments"] = approved.model_dump()
+                            else:
+                                approved = ToolStep(
+                                    tool=tool, arguments=event["arguments"]
+                                )
+                                observation["arguments"] = approved.arguments
                             observation["arguments_retained"] = True
                         self.on_observation(dict(observation))
                         try:
-                            result = execute_tool(tool, event["arguments"], workspace)
+                            if (
+                                self.tool_extension
+                                and tool in self.tool_extension.names
+                            ):
+                                result = self.tool_extension.execute(
+                                    tool, event["arguments"]
+                                )
+                            else:
+                                result = execute_tool(
+                                    tool, event["arguments"], workspace
+                                )
                             success, error = True, None
                         except Exception as failure:
                             # Return error class only, never arbitrary exception text.

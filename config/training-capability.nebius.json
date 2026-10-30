@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "model": "nvidia/Nemotron-3_5-Lightning",
+  "supported": false,
+  "account_verified": false,
+  "schema_verified": false,
+  "credit_eligibility_verified": false,
+  "methods": [],
+  "source_url": "https://docs.tokenfactory.nebius.com/post-training/models",
+  "checked_on": "2026-10-29",
+  "pricing_verified": false,
+  "max_context_tokens": null
+}

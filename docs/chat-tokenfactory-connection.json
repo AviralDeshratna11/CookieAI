@@ -1,0 +1,42 @@
+{
+  "status": "live_verified",
+  "answer_model": "nvidia/Nemotron-3_5-Lightning",
+  "embedding_model": "Qwen/Qwen3-Embedding-8B",
+  "endpoint": "https://api.tokenfactory.nebius.com/v1",
+  "verification_response": "CONNECTED.",
+  "verification_requests": 5,
+  "request_stages": [
+    {
+      "stage": "embedding",
+      "state": "settled"
+    },
+    {
+      "stage": "embedding",
+      "state": "settled"
+    },
+    {
+      "stage": "answer",
+      "state": "settled"
+    },
+    {
+      "stage": "embedding",
+      "state": "settled"
+    },
+    {
+      "stage": "embedding",
+      "state": "settled"
+    }
+  ],
+  "verification_estimated_cost_usd": "0.00003006",
+  "cumulative_spent_or_reserved_usd": "0.14624243",
+  "parent_cap_usd": "20",
+  "additional_workspace_allowance_usd": "0.25",
+  "local_url": "http://127.0.0.1:8766",
+  "memory": "persistent isolated local workspace; raw ingestion with semantic embeddings",
+  "vm": "owned benchmark VM stopped after authoritative ledger transfer",
+  "offline_verification": {
+    "focused_python_tests_passed": 14,
+    "node_interface_tests_passed": 9
+  },
+  "authority": "Local usage-based estimate; provider billing is authoritative"
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "question_id": "synthetic_temporal_1",
+    "question_type": "temporal-reasoning",
+    "question": "How many days after I ordered the bicycle did it arrive?",
+    "answer": "14 days",
+    "question_date": "2025/02/10 (Mon) 12:00",
+    "haystack_session_ids": ["bike_order", "bike_arrival"],
+    "haystack_dates": ["2025/01/20 (Mon) 10:00", "2025/02/03 (Mon) 10:00"],
+    "haystack_sessions": [
+      [{"role": "user", "content": "I ordered a bicycle today."}, {"role": "assistant", "content": "Let me know when the bicycle arrives."}],
+      [{"role": "user", "content": "My bicycle arrived today."}]
+    ],
+    "answer_session_ids": ["bike_order", "bike_arrival"]
+  },
+  {
+    "question_id": "synthetic_update_1",
+    "question_type": "knowledge-update",
+    "question": "Where do I currently live?",
+    "answer": "Pune",
+    "question_date": "2025/02/10 (Mon) 12:00",
+    "haystack_session_ids": ["old_home", "new_home"],
+    "haystack_dates": ["2025/01/20 (Mon) 10:00", "2025/02/03 (Mon) 10:00"],
+    "haystack_sessions": [
+      [{"role": "user", "content": "I live in Delhi."}],
+      [{"role": "user", "content": "I moved to Pune today. Pune is now my home."}]
+    ],
+    "answer_session_ids": ["new_home"]
+  },
+  {
+    "question_id": "synthetic_preference_1",
+    "question_type": "single-session-preference",
+    "question": "Suggest a lunch for me.",
+    "answer": "Suggest a vegetarian meal without peanuts.",
+    "question_date": "2025/02/10 (Mon) 12:00",
+    "haystack_session_ids": ["diet"],
+    "haystack_dates": ["2025/02/03 (Mon) 10:00"],
+    "haystack_sessions": [[{"role": "user", "content": "I eat vegetarian food and avoid peanuts."}]],
+    "answer_session_ids": ["diet"]
+  },
+  {
+    "question_id": "synthetic_missing_abs",
+    "question_type": "single-session-user",
+    "question": "What is my bicycle serial number?",
+    "answer": "The serial number was never supplied.",
+    "question_date": "2025/02/10 (Mon) 12:00",
+    "haystack_session_ids": ["bike"],
+    "haystack_dates": ["2025/02/03 (Mon) 10:00"],
+    "haystack_sessions": [[{"role": "user", "content": "My bicycle is blue."}]],
+    "answer_session_ids": []
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "source_url": "https://api.tokenfactory.nebius.com/openapi.json",
+  "checked_on": "2026-10-29",
+  "adapter_version": "nebius-sft-v1",
+  "api_version": "20261022-1d60f32ca",
+  "request_schema_sha256": "a0f53c25f347878704dacd5e15b3ea8847931df005f57d6b8d906e617f434730",
+  "hyperparameters_schema_sha256": "fb477ec658ec1de9080eb25df48b43e1e75f8e148537822f168793c7ff758130",
+  "supported_adapter_endpoints": [
+    "POST /v1/files",
+    "POST /v1/fine_tuning/jobs",
+    "GET /v1/fine_tuning/jobs/{job_id}",
+    "POST /v1/fine_tuning/jobs/{job_id}/cancel",
+    "GET /v1/fine_tuning/jobs/{job_id}/events",
+    "GET /v1/fine_tuning/jobs/{job_id}/checkpoints"
+  ],
+  "live_training_verified": false
+}

@@ -16,6 +16,8 @@ from memory.reflection.engine import InsightCritic
 from memory.schemas import Memory, MemoryCreate, utcnow
 from memory.security.auth import NotFound, require_scope
 
+SEVERITY = {"VALIDATED": 0, "WEAK": 1, "DISPUTED": 2, "REJECTED": 3}
+
 
 class SerendipityEngine:
     def __init__(self, memory, rng=None, critic=None):
@@ -47,10 +49,33 @@ class SerendipityEngine:
 
     @require_scope("write")
     def run(self, ctx, max_pairs=12):
+        pending = self._candidates(ctx, max_pairs)
+        if not pending:
+            return []
+        reviews = {}
+        if self.memory.settings.reflection_backend == "compatible":
+            # Read evidence, release the transaction, then call the model. Expensive
+            # reasoning must not hold the namespace write lock.
+            from models.serendipity import CompatibleSerendipity
+
+            reviewer = CompatibleSerendipity(self.memory.settings)
+            for item in pending[: self.memory.settings.reflection_max_model_candidates]:
+                reviews[item["key"]] = reviewer.propose(
+                    item["anchor"],
+                    item["candidate"],
+                    item["differences"],
+                    item["support"],
+                    item["counter"],
+                    item["episode_evidence"],
+                )
+        return self._apply(ctx, pending, reviews)
+
+    def _candidates(self, ctx, max_pairs):
+        """Read-only pass: select an anchor, sample candidates, apply the
+        structural/heuristic gates, and collect everything a model call or
+        persistence pass would need. Nothing is written here."""
         with self.memory.engine.begin() as connection:
             repo = SQLMemoryRepository(connection, ctx)
-            repo.lock_namespace()
-            policy = self.memory.policy(repo)
             experiences = []
             for row in connection.execute(
                 select(x.experiences.c.payload)
@@ -101,7 +126,7 @@ class SerendipityEngine:
                 != anchor.context_signature.get("domain")
             ]
             self.rng.shuffle(distant)
-            proposals = []
+            pending = []
             seen = set()
             for candidate, candidate_memory in (
                 near + temporal + distant[: max_pairs - len(near) - len(temporal)]
@@ -141,33 +166,6 @@ class SerendipityEngine:
                 )
                 if verdict == "REJECTED":
                     continue
-                confidence = min(
-                    similarity, len(support) / (len(support) + len(counter) + 3)
-                )
-                novelty = (
-                    0.6
-                    if anchor.context_signature.get("domain")
-                    != candidate.context_signature.get("domain")
-                    else 0.2
-                )
-                utility = 0.6
-                active = (
-                    confidence >= policy.serendipity_confidence
-                    and novelty >= policy.serendipity_novelty
-                    and utility >= policy.serendipity_utility
-                    and len(support) >= policy.minimum_support
-                    and verdict == "VALIDATED"
-                )
-                differences = {
-                    key: [
-                        anchor.context_signature.get(key),
-                        candidate.context_signature.get(key),
-                    ]
-                    for key in anchor.context_signature
-                    if anchor.context_signature.get(key)
-                    != candidate.context_signature.get(key)
-                }
-                statement = f"Possible analogy: actions {sorted(shared)} previously succeeded in structurally related contexts. Differences: {differences}. Counterexamples: {len(counter)}. This is not a universal or causal rule."
                 key = hashlib.sha256(
                     "|".join(sorted(map(str, ids))).encode()
                 ).hexdigest()
@@ -178,10 +176,109 @@ class SerendipityEngine:
                     )
                 ).first():
                     continue
-                evidence = [anchor_memory, candidate_memory] + [
-                    repo.get(item) for item in counter
+                confidence = min(
+                    similarity, len(support) / (len(support) + len(counter) + 3)
+                )
+                novelty = (
+                    0.6
+                    if anchor.context_signature.get("domain")
+                    != candidate.context_signature.get("domain")
+                    else 0.2
+                )
+                differences = {
+                    key2: [
+                        anchor.context_signature.get(key2),
+                        candidate.context_signature.get(key2),
+                    ]
+                    for key2 in anchor.context_signature
+                    if anchor.context_signature.get(key2)
+                    != candidate.context_signature.get(key2)
+                }
+                pending.append(
+                    {
+                        "key": key,
+                        "anchor": anchor,
+                        "anchor_memory": anchor_memory,
+                        "candidate": candidate,
+                        "candidate_memory": candidate_memory,
+                        "ids": ids,
+                        "support": support,
+                        "counter": counter,
+                        "episode_evidence": episode_evidence,
+                        "evidence_revisions": {
+                            (item.memory_id, item.revision) for item in episode_evidence
+                        },
+                        "verdict": verdict,
+                        "confidence": confidence,
+                        "novelty": novelty,
+                        "shared": shared,
+                        "differences": differences,
+                    }
+                )
+            return pending
+
+    def _apply(self, ctx, pending, reviews):
+        with self.memory.engine.begin() as connection:
+            repo = SQLMemoryRepository(connection, ctx)
+            repo.lock_namespace()
+            policy = self.memory.policy(repo)
+            proposals = []
+            for item in pending:
+                if connection.execute(
+                    select(r.insights.c.id).where(
+                        r.insights.c.namespace_id == ctx.namespace_id,
+                        r.insights.c.feature_hash == item["key"],
+                    )
+                ).first():
+                    continue  # Recorded by a concurrent run since the read pass.
+                verdict = item["verdict"]
+                statement = (
+                    f"Possible analogy: actions {sorted(item['shared'])} previously "
+                    f"succeeded in structurally related contexts. Differences: "
+                    f"{item['differences']}. Counterexamples: "
+                    f"{len(item['counter'])}. This is not a universal or causal rule."
+                )
+                insight_type = "ANALOGY"
+                applicability_conditions = item["anchor"].applicability_conditions
+                alternative_explanations = ["Shared source events or domain confounding"]
+                review = {}
+                if item["key"] in reviews:
+                    proposal, critique, metadata = reviews[item["key"]]
+                    if item["evidence_revisions"] != {
+                        (ev.memory_id, ev.revision) for ev in item["episode_evidence"]
+                    }:
+                        continue  # Evidence changed since the read pass; skip this run.
+                    model_verdict = (
+                        "REJECTED" if proposal.type == "NONE" else critique.verdict
+                    )
+                    verdict = max((verdict, model_verdict), key=SEVERITY.get)
+                    if proposal.type != "NONE":
+                        insight_type = proposal.type
+                        if proposal.statement:
+                            statement = proposal.statement
+                        if proposal.applicability_conditions:
+                            applicability_conditions = proposal.applicability_conditions
+                        if proposal.alternative_explanations:
+                            alternative_explanations = proposal.alternative_explanations
+                    review = {
+                        "proposal": proposal.model_dump(mode="json"),
+                        "critique": critique.model_dump(),
+                        **metadata,
+                    }
+                if verdict == "REJECTED":
+                    continue
+                utility = 0.6
+                active = (
+                    item["confidence"] >= policy.serendipity_confidence
+                    and item["novelty"] >= policy.serendipity_novelty
+                    and utility >= policy.serendipity_utility
+                    and len(item["support"]) >= policy.minimum_support
+                    and verdict == "VALIDATED"
+                )
+                evidence = [item["anchor_memory"], item["candidate_memory"]] + [
+                    repo.get(episode_id) for episode_id in item["counter"]
                 ]
-                sources = ids + counter
+                sources = item["ids"] + item["counter"]
                 memory = self.memory._create(
                     repo,
                     MemoryCreate(
@@ -190,8 +287,8 @@ class SerendipityEngine:
                         epistemic_type="HYPOTHESIZED",
                         source_type="DERIVED",
                         provenance_ids=sources,
-                        truth_confidence=confidence,
-                        novelty=novelty,
+                        truth_confidence=item["confidence"],
+                        novelty=item["novelty"],
                         future_utility=utility,
                         expires_at=None
                         if active
@@ -211,49 +308,48 @@ class SerendipityEngine:
                 payload = {
                     "insight_id": str(memory.memory_id),
                     "statement": statement,
-                    "type": "ANALOGY",
+                    "type": insight_type,
                     "epistemic_type": "HYPOTHESIZED",
-                    "supporting_episode_ids": list(map(str, support)),
-                    "counterexample_episode_ids": list(map(str, counter)),
-                    "truth_confidence": confidence,
-                    "novelty": novelty,
+                    "supporting_episode_ids": list(map(str, item["support"])),
+                    "counterexample_episode_ids": list(map(str, item["counter"])),
+                    "truth_confidence": item["confidence"],
+                    "novelty": item["novelty"],
                     "utility": utility,
-                    "differences": differences,
+                    "differences": item["differences"],
                     "causality_status": "NONE",
                     "status": "ACTIVE" if active else "CANDIDATE",
                     "critic_verdict": verdict,
                     "last_validated": utcnow().isoformat(),
-                    "applicability_conditions": anchor.applicability_conditions,
+                    "derivation": "STRUCTURAL_AND_LLM" if review else "STRUCTURAL_ANALOGY",
+                    "model_review": review,
+                    "applicability_conditions": applicability_conditions,
                     "limitations": [
                         "Bounded to 300 recent authorized experiences and configured pair budget",
                         "Structural, temporal and distant-domain neighbors are search heuristics",
                     ],
-                    "alternative_explanations": [
-                        "Shared source events or domain confounding"
-                    ],
-                    "derivation": "STRUCTURAL_ANALOGY",
+                    "alternative_explanations": alternative_explanations,
                 }
                 from memory.insights.lifecycle import seal
 
-                payload = seal(payload, episode_evidence)
+                payload = seal(payload, item["episode_evidence"])
                 connection.execute(
                     insert(r.insights).values(
                         id=memory.memory_id,
                         namespace_id=ctx.namespace_id,
-                        feature_hash=key,
+                        feature_hash=item["key"],
                         payload=payload,
                     )
                 )
-                for item in support:
+                for episode_id in item["support"]:
                     connection.execute(
                         insert(r.insight_evidence).values(
-                            insight_id=memory.memory_id, episode_id=item
+                            insight_id=memory.memory_id, episode_id=episode_id
                         )
                     )
-                for item in counter:
+                for episode_id in item["counter"]:
                     connection.execute(
                         insert(r.insight_counterexamples).values(
-                            insight_id=memory.memory_id, episode_id=item
+                            insight_id=memory.memory_id, episode_id=episode_id
                         )
                     )
                 proposals.append(payload)

@@ -39,6 +39,9 @@ def compose(hits: list[SearchHit], token_budget=8000, counter=None):
             "truth_confidence": memory.truth_confidence,
             "relevance": hit.relevance,
             "source_id": str(memory.source_id) if memory.source_id else None,
+            "observed_at": memory.observed_at.isoformat(),
+            "event_at": memory.event_at.isoformat() if memory.event_at else None,
+            "source_session_id": str(memory.source_session_id),
             "provenance_ids": list(map(str, memory.provenance_ids)),
         }
         getattr(packet, category).append(item)

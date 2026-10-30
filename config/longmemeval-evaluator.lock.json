@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/xiaowu0162/LongMemEval",
+  "path": "src/evaluation/evaluate_qa.py",
+  "upstream_revision": "d6dc8b50a2d9ac0c99485ea28fa5755c62414c34",
+  "source_url": "https://github.com/xiaowu0162/LongMemEval/blob/d6dc8b50a2d9ac0c99485ea28fa5755c62414c34/src/evaluation/evaluate_qa.py",
+  "status": "local prompt snapshot checked against upstream evaluator on 2026-10-29",
+  "local_function": "scripts.benchmark_longmemeval.get_anscheck_prompt",
+  "protocol_deviations": [
+    "Strict complete yes/no verdicts rather than substring matching",
+    "Abstention uses documented _abs suffix rather than upstream substring matching",
+    "Configurable NVIDIA judge rather than official model_zoo grader; results are not official-grader scores"
+  ],
+  "publication_gate": "Configured NVIDIA judge scores are not official-grader scores"
+}

@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-29",
+  "timezone": "Asia/Calcutta",
+  "source_identity": {
+    "git_head": "4cda94a14a231e9974478544168e51cfce825ffc",
+    "source_tree_sha256": "65cafb98f1e9e17797a070da51674cea5e82eced555497fbcc06c7925daa5fc9"
+  },
+  "scope": "Synthetic offline retrieval, mock HTTP budgeting/provider tests, and real pinned Hermes with scripted model responses. No hosted quality evaluation.",
+  "tests": {
+    "passed": 45,
+    "skipped": 2,
+    "failed": 0,
+    "seconds": 34.83,
+    "command": ".venv/Scripts/python.exe -m pytest tests/unit/test_benchmark_harness.py tests/unit/test_context_budget.py tests/unit/test_provider_routing.py tests/integration/test_hermes_execution.py tests/integration/test_scope_enforcement.py tests/integration/test_hybrid.py -q",
+    "skip_note": "Two existing COOKIEAI_HERMES_PYTHON-gated integration tests skipped. Both new pinned-runtime tests ran, including the paired harness with mock HTTP. The existing scripted real-engine smoke was also run separately and passed."
+  },
+  "checks": {
+    "ruff": "passed",
+    "ruff_format": "passed",
+    "git_diff_check": "passed"
+  },
+  "offline_retrieval": {
+    "planned": 4,
+    "status_counts": {
+      "retrieved": 4
+    },
+    "report": "docs/benchmark-offline-results.json"
+  },
+  "hosted_model_calls": 0,
+  "hosted_spend_usd": "0",
+  "hosted_reservations_usd": "0",
+  "production_provider_changed": false,
+  "production_database_changed": false,
+  "next_live_blockers": [
+    "API key supplied privately through named environment variable",
+    "Exact account-visible NVIDIA model IDs and compatible semantic embedding configuration",
+    "Verified input/output/reasoning pricing and billing bounds",
+    "Review dry-run sample and costs before invoking --live"
+  ],
+  "limits": [
+    "MemoryService plus HermesBackend, excluding full AgentService pipeline",
+    "Initial $1 local task cap; provider billing remains authoritative",
+    "No claim of benchmark accuracy improvement from scripted or synthetic tests"
+  ]
+}
